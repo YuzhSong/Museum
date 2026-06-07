@@ -7,16 +7,17 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <style>
       :root {
-        --ink: #182026;
-        --muted: #63717d;
-        --line: #d9e1e5;
-        --paper: #fbfaf6;
+        --ink: #26211d;
+        --muted: #786f67;
+        --line: #e5ded4;
+        --paper: #f7f3ec;
         --surface: #ffffff;
-        --brand: #9a2f2f;
-        --brand-dark: #6f2025;
-        --jade: #2f7d70;
-        --gold: #bc8b2c;
-        --blue: #315c83;
+        --brand: #8f1f24;
+        --brand-dark: #5f161b;
+        --jade: #2e6f63;
+        --gold: #b38a3d;
+        --blue: #2d4c64;
+        --deep: #151210;
       }
 
       * { box-sizing: border-box; }
@@ -25,6 +26,16 @@
         font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
         color: var(--ink);
         background: var(--paper);
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background:
+          linear-gradient(90deg, rgba(143,31,36,.05) 1px, transparent 1px),
+          linear-gradient(0deg, rgba(179,138,61,.05) 1px, transparent 1px);
+        background-size: 42px 42px;
       }
       button, input, select, textarea { font: inherit; }
       button {
@@ -49,20 +60,35 @@
       textarea { min-height: 80px; resize: vertical; }
       label { display: grid; gap: 5px; color: var(--muted); font-size: 13px; }
       .hero {
-        min-height: 58vh;
+        min-height: 68vh;
         display: grid;
         align-items: end;
         background:
-          linear-gradient(90deg, rgba(12,18,23,.84), rgba(12,18,23,.45), rgba(12,18,23,.12)),
-          url("https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=1800&q=80") center/cover;
+          linear-gradient(90deg, rgba(13,10,8,.86), rgba(50,23,20,.58), rgba(13,10,8,.18)),
+          url("https://www.gmfyg.org.cn/display/wenmaihuazi/pic/head.jpg") center/cover;
         color: white;
       }
       .hero-inner { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 70px 0 42px; }
-      .hero h1 { margin: 0 0 14px; font-size: clamp(34px, 5vw, 62px); font-weight: 800; letter-spacing: 0; }
+      .hero h1 { margin: 0 0 14px; font-size: clamp(34px, 5vw, 62px); font-weight: 800; letter-spacing: 0; max-width: 880px; }
       .hero p { max-width: 720px; margin: 0; line-height: 1.75; color: #eef4f2; }
+      .hero-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+        color: #f4dfb2;
+        letter-spacing: 2px;
+        font-size: 13px;
+      }
+      .hero-kicker::before {
+        content: "";
+        width: 42px;
+        height: 1px;
+        background: var(--gold);
+      }
       .topbar {
         position: sticky; top: 0; z-index: 20;
-        background: rgba(251,250,246,.96);
+        background: rgba(255,255,255,.96);
         border-bottom: 1px solid var(--line);
         backdrop-filter: blur(10px);
       }
@@ -70,7 +96,8 @@
         width: min(1180px, calc(100% - 24px)); margin: 0 auto;
         display: flex; align-items: center; gap: 10px; min-height: 62px;
       }
-      .brand { font-weight: 800; color: var(--brand-dark); margin-right: auto; }
+      .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--brand-dark); margin-right: auto; }
+      .brand img { width: 148px; height: auto; display: block; }
       .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
       .tabs button {
         background: transparent; color: var(--ink); border: 1px solid transparent;
@@ -83,8 +110,9 @@
       .card {
         background: var(--surface);
         border: 1px solid var(--line);
-        border-radius: 8px;
+        border-radius: 4px;
         overflow: hidden;
+        box-shadow: 0 14px 34px rgba(35,24,21,.06);
       }
       .card-body { padding: 16px; }
       .thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: #e7ece9; display: block; }
@@ -96,6 +124,41 @@
       .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
       .stack { display: grid; gap: 12px; }
       .panel { background: white; border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+      .museum-strip {
+        margin-top: -52px;
+        position: relative;
+        z-index: 3;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border: 1px solid rgba(255,255,255,.32);
+        background: rgba(255,255,255,.96);
+        box-shadow: 0 18px 48px rgba(35,24,21,.16);
+      }
+      .museum-strip div { padding: 18px 20px; border-right: 1px solid var(--line); }
+      .museum-strip div:last-child { border-right: 0; }
+      .museum-strip b { display: block; font-size: 20px; color: var(--brand-dark); margin-bottom: 4px; }
+      .section-title {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        border-bottom: 2px solid var(--brand-dark);
+        padding-bottom: 10px;
+      }
+      .section-title small { color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+      .feature-card { display: grid; grid-template-columns: minmax(260px, .92fr) minmax(0, 1.08fr); min-height: 330px; }
+      .feature-card .thumb { height: 100%; aspect-ratio: auto; }
+      .feature-card .card-body { padding: 28px; align-content: center; display: grid; }
+      .date-block {
+        width: 76px;
+        min-width: 76px;
+        text-align: center;
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+      .date-block strong { display: block; padding: 9px 0 3px; font-size: 24px; color: var(--brand-dark); }
+      .date-block span { display: block; padding: 4px 0 8px; color: var(--muted); font-size: 12px; }
+      .source-note { font-size: 12px; color: var(--muted); }
       .notice { border-left: 4px solid var(--jade); padding: 10px 12px; background: #eef7f4; color: #174b42; border-radius: 4px; margin-bottom: 14px; }
       .error { border-left-color: var(--brand); background: #fff0f0; color: #743034; }
       table { width: 100%; border-collapse: collapse; background: white; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
@@ -107,6 +170,9 @@
         .topbar-inner { align-items: flex-start; flex-direction: column; padding: 10px 0; }
         .brand { margin-right: 0; }
         .two { grid-template-columns: 1fr; }
+        .museum-strip { grid-template-columns: 1fr 1fr; margin-top: -24px; }
+        .feature-card { grid-template-columns: 1fr; }
+        .feature-card .thumb { aspect-ratio: 16/10; }
         .hero { min-height: 48vh; }
       }
     </style>
@@ -115,14 +181,15 @@
     <div id="app">
       <section class="hero">
         <div class="hero-inner">
+          <div class="hero-kicker">中国工艺美术馆 · 中国非物质文化遗产馆</div>
           <h1>中国工艺美术馆预约与导览服务平台</h1>
-          <p>面向游客、管理员与志愿者的课程 MVP，实现展览浏览、藏品查看、门票预约、活动报名、馆内导览和后台内容维护。</p>
+          <p>参考馆方官网的展览、活动、典藏与志愿服务栏目，为课程 MVP 实现展览浏览、藏品查看、门票预约、活动报名、馆内导览和后台内容维护。</p>
         </div>
       </section>
 
       <nav class="topbar">
         <div class="topbar-inner">
-          <div class="brand">Museum Service</div>
+          <div class="brand"><img src="https://www.gmfyg.org.cn/public/static/base/image/logo.png" alt="中国工艺美术馆 中国非物质文化遗产馆"><span>预约与导览</span></div>
           <div class="tabs">
             <button v-for="tab in visibleTabs" :key="tab.key" :class="{active: view===tab.key}" @click="view=tab.key">{{ tab.label }}</button>
           </div>
@@ -135,18 +202,49 @@
       </nav>
 
       <main>
+        <section class="museum-strip">
+          <div><b>今日开馆</b><span class="muted">周一例行闭馆，节假日不闭馆</span></div>
+          <div><b>09:00</b><span class="muted">开始入馆</span></div>
+          <div><b>16:00</b><span class="muted">停止入馆</span></div>
+          <div><b>17:00</b><span class="muted">闭馆时间</span></div>
+        </section>
+
         <div v-if="message" class="notice" :class="{error: messageType==='error'}">{{ message }}</div>
 
         <section v-if="view==='home'" class="stack">
-          <h2>开放展览</h2>
+          <div class="section-title"><h2>开放展览</h2><small>Exhibition</small></div>
+          <article class="card feature-card" v-if="exhibitions[0]">
+            <img class="thumb" :src="exhibitions[0].cover_image_url || fallbackImage" :alt="exhibitions[0].title">
+            <div class="card-body stack">
+              <div class="row"><span class="pill">{{ exhibitions[0].location }}</span><span class="pill">{{ exhibitions[0].start_date }} - {{ exhibitions[0].end_date }}</span></div>
+              <h2>{{ exhibitions[0].title }}</h2>
+              <p>{{ exhibitions[0].description }}</p>
+              <div class="row"><button @click="openExhibition(exhibitions[0].id)">查看展览与藏品</button><button class="secondary" @click="view='reservation'">我要预约</button></div>
+            </div>
+          </article>
           <div class="grid">
-            <article class="card" v-for="item in exhibitions" :key="item.id">
+            <article class="card" v-for="item in exhibitions.slice(1)" :key="item.id">
               <img class="thumb" :src="item.cover_image_url || fallbackImage" :alt="item.title">
               <div class="card-body stack">
                 <div class="row"><span class="pill">{{ item.location }}</span><span class="pill">{{ item.start_date }} 至 {{ item.end_date }}</span></div>
                 <h3>{{ item.title }}</h3>
                 <p class="muted">{{ item.description }}</p>
                 <button @click="openExhibition(item.id)">查看展览与藏品</button>
+              </div>
+            </article>
+          </div>
+          <p class="source-note">页面风格与展示内容参考中国工艺美术馆 中国非物质文化遗产馆官网栏目，系统功能仍按课程详细设计报告实现。</p>
+        </section>
+
+        <section v-if="view==='collections'" class="stack">
+          <div class="section-title"><h2>典藏</h2><small>Collection</small></div>
+          <div class="grid">
+            <article class="card" v-for="item in publicCollections" :key="item.id">
+              <img class="thumb" :src="item.image_url || fallbackImage" :alt="item.name">
+              <div class="card-body">
+                <h3>{{ item.name }}</h3>
+                <p class="muted">{{ item.category }} · {{ item.dynasty }} · {{ item.exhibition_title }}</p>
+                <p>{{ item.description }}</p>
               </div>
             </article>
           </div>
@@ -181,7 +279,7 @@
 
         <section v-if="view==='reservation'" class="two">
           <div class="stack">
-            <h2>可预约场次</h2>
+            <div class="section-title"><h2>可预约场次</h2><small>Visit Slot</small></div>
             <div class="grid">
               <article class="card" v-for="slot in slots" :key="slot.id">
                 <div class="card-body stack">
@@ -207,13 +305,15 @@
 
         <section v-if="view==='activities'" class="two">
           <div class="stack">
-            <h2>博物馆活动</h2>
+            <div class="section-title"><h2>博物馆活动</h2><small>Event</small></div>
             <div class="grid">
               <article class="card" v-for="activity in activities" :key="activity.id">
                 <img class="thumb" :src="activity.cover_image_url || fallbackImage" :alt="activity.title">
                 <div class="card-body stack">
-                  <h3>{{ activity.title }}</h3>
-                  <p class="muted">{{ formatDateTime(activity.activity_time) }} · {{ activity.location }}</p>
+                  <div class="row">
+                    <div class="date-block"><strong>{{ dayOfMonth(activity.activity_time) }}</strong><span>{{ monthLabel(activity.activity_time) }}</span></div>
+                    <div><h3>{{ activity.title }}</h3><p class="muted">{{ formatDateTime(activity.activity_time) }} · {{ activity.location }}</p></div>
+                  </div>
                   <p>{{ activity.description }}</p>
                   <span class="pill">剩余 {{ activity.available_count }} / {{ activity.capacity }}</span>
                   <button :disabled="!user || activity.available_count <= 0" @click="registerActivity(activity.id)">报名活动</button>
@@ -232,7 +332,7 @@
         </section>
 
         <section v-if="view==='guides'" class="stack">
-          <h2>馆内导览</h2>
+          <div class="section-title"><h2>馆内导览</h2><small>Service</small></div>
           <div class="grid">
             <article class="card" v-for="guide in guides" :key="guide.id">
               <img class="thumb" :src="guide.map_image_url || fallbackImage" :alt="guide.hall_name">
@@ -385,6 +485,7 @@
             reservations: [],
             activities: [],
             activityRegistrations: [],
+            publicCollections: [],
             guides: [],
             adminTab: "exhibitions",
             adminExhibitions: [],
@@ -406,6 +507,7 @@
           visibleTabs() {
             return [
               { key: "home", label: "展览" },
+              { key: "collections", label: "典藏" },
               { key: "reservation", label: "预约" },
               { key: "activities", label: "活动" },
               { key: "guides", label: "导览" },
@@ -419,6 +521,7 @@
           view(value) {
             if (value === "reservation") this.loadReservations();
             if (value === "activities") this.loadActivities();
+            if (value === "collections") this.loadPublicCollections();
             if (value === "guides") this.loadGuides();
             if (value === "admin") this.loadAdmin();
             if (value === "volunteer") this.loadVolunteer();
@@ -426,6 +529,7 @@
         },
         async mounted() {
           await Promise.all([this.loadExhibitions(), this.loadSlots(), this.loadActivities(), this.loadGuides()]);
+          await this.loadPublicCollections();
           if (this.user) await Promise.all([this.loadReservations(), this.loadActivityRegistrations()]);
         },
         methods: {
@@ -446,8 +550,15 @@
           roleLabel(role) { return ({ visitor: "游客", admin: "管理员", volunteer: "志愿者/讲解员" })[role] || role; },
           statusLabel(status) { return ({ active: "已预约", cancelled: "已取消", expired: "已过期" })[status] || status; },
           formatDateTime(value) { return value ? new Date(value).toLocaleString("zh-CN", { hour12: false }) : ""; },
+          dayOfMonth(value) { return value ? String(new Date(value).getDate()).padStart(2, "0") : ""; },
+          monthLabel(value) { return value ? `${new Date(value).getMonth() + 1}月` : ""; },
           async loadExhibitions() { this.exhibitions = await this.api("/exhibitions/"); },
           async openExhibition(id) { this.selectedExhibition = await this.api(`/exhibitions/${id}/`); this.view = "exhibition"; },
+          async loadPublicCollections() {
+            if (!this.exhibitions.length) await this.loadExhibitions();
+            const details = await Promise.all(this.exhibitions.map((item) => this.api(`/exhibitions/${item.id}/`)));
+            this.publicCollections = details.flatMap((exhibition) => (exhibition.collections || []).map((item) => ({ ...item, exhibition_title: exhibition.title })));
+          },
           async loadSlots() { this.slots = await this.api("/visit-slots/"); },
           async loadReservations() { if (this.user) this.reservations = await this.api("/reservations/"); },
           async reserve(slotId) {
