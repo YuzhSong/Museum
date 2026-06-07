@@ -2,6 +2,8 @@
 
 本项目根据《详细设计报告》实现课程作业 MVP，采用 Django + Vue 前后端分离思路，覆盖游客、管理员、志愿者/讲解员三类角色。
 
+GitHub 仓库：[YuzhSong/Museum](https://github.com/YuzhSong/Museum)
+
 ## 功能范围
 
 - 用户账号：游客注册、登录、退出、角色区分
@@ -46,6 +48,17 @@ python manage.py migrate
 python manage.py seed_demo
 ```
 
+如果从其他电脑首次拉取项目：
+
+```powershell
+git clone https://github.com/YuzhSong/Museum.git
+cd Museum
+python -m pip install Django djangorestframework django-cors-headers reportlab
+cd backend
+python manage.py migrate
+python manage.py seed_demo
+```
+
 ## 启动方式
 
 启动后端：
@@ -66,6 +79,12 @@ python -m http.server 5173
 
 ```text
 http://127.0.0.1:5173
+```
+
+后端默认监听 `http://127.0.0.1:8000`，前端默认通过 `frontend/index.html` 中的 `API_BASE` 访问后端 API。如需修改后端地址，可在浏览器控制台设置：
+
+```javascript
+localStorage.setItem("museum_api_base", "http://127.0.0.1:8000/api")
 ```
 
 ## 演示账号
@@ -100,6 +119,54 @@ http://127.0.0.1:5173
 ```text
 Authorization: Bearer <token>
 ```
+
+## 测试
+
+后端包含 3 个核心接口测试，覆盖游客预约/取消、管理员查看预约数据、志愿者查看报名名单。
+
+```powershell
+cd D:\Code\Museum\backend
+python manage.py test api
+```
+
+也可以执行 Django 系统检查：
+
+```powershell
+python manage.py check
+```
+
+## Git 同步
+
+当前建议主开发分支为 `codex/museum-mvp`。首次关联远程仓库：
+
+```powershell
+cd D:\Code\Museum
+git remote add origin https://github.com/YuzhSong/Museum.git
+git push -u origin codex/museum-mvp
+```
+
+日常提交与同步：
+
+```powershell
+git status
+git add .
+git commit -m "Update museum platform"
+git push
+```
+
+其他电脑同步最新代码：
+
+```powershell
+git pull
+```
+
+## 作业提交清单
+
+- 源代码：`backend/`、`frontend/`
+- 中间产物与文档：`docs/coding_implementation_report.md`
+- 运行说明与已知问题：`README.md`
+- 编码实现报告：`编码实现报告.pdf`
+- 支撑材料：初始化数据命令、接口测试、演示账号
 
 ## 已知问题
 
