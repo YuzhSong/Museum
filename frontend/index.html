@@ -268,28 +268,79 @@
           <h2>管理员后台</h2>
           <div v-if="!isAdmin" class="panel muted">请使用管理员账号登录。</div>
           <template v-else>
-            <div class="panel stack">
-              <h3>新增/修改展览</h3>
-              <div class="form-grid">
-                <label>名称<input v-model="adminExhibition.title"></label>
-                <label>地点<input v-model="adminExhibition.location"></label>
-                <label>开始日期<input v-model="adminExhibition.start_date" type="date"></label>
-                <label>结束日期<input v-model="adminExhibition.end_date" type="date"></label>
-                <label>状态<select v-model="adminExhibition.status"><option value="published">已发布</option><option value="draft">草稿</option><option value="closed">已下架</option></select></label>
-                <label>封面 URL<input v-model="adminExhibition.cover_image_url"></label>
-              </div>
-              <label>简介<textarea v-model="adminExhibition.description"></textarea></label>
-              <button @click="saveExhibition">保存展览</button>
+            <div class="tabs">
+              <button :class="{active: adminTab==='exhibitions'}" @click="adminTab='exhibitions'">展览管理</button>
+              <button :class="{active: adminTab==='collections'}" @click="adminTab='collections'">藏品管理</button>
+              <button :class="{active: adminTab==='activities'}" @click="adminTab='activities'">活动管理</button>
+              <button :class="{active: adminTab==='reservations'}" @click="adminTab='reservations'">预约数据</button>
             </div>
-            <table>
-              <thead><tr><th>展览</th><th>地点</th><th>状态</th><th>操作</th></tr></thead>
-              <tbody><tr v-for="item in adminExhibitions" :key="item.id"><td>{{ item.title }}</td><td>{{ item.location }}</td><td>{{ item.status }}</td><td><button class="secondary" @click="editExhibition(item)">编辑</button> <button class="ghost" @click="closeExhibition(item.id)">下架</button></td></tr></tbody>
-            </table>
-            <h3>预约数据</h3>
-            <table>
-              <thead><tr><th>游客</th><th>日期</th><th>时间段</th><th>状态</th></tr></thead>
-              <tbody><tr v-for="item in adminReservations" :key="item.id"><td>{{ item.user.username }}</td><td>{{ item.slot.visit_date }}</td><td>{{ item.slot.time_slot }}</td><td>{{ statusLabel(item.status) }}</td></tr></tbody>
-            </table>
+
+            <template v-if="adminTab==='exhibitions'">
+              <div class="panel stack">
+                <h3>新增/修改展览</h3>
+                <div class="form-grid">
+                  <label>名称<input v-model="adminExhibition.title"></label>
+                  <label>地点<input v-model="adminExhibition.location"></label>
+                  <label>开始日期<input v-model="adminExhibition.start_date" type="date"></label>
+                  <label>结束日期<input v-model="adminExhibition.end_date" type="date"></label>
+                  <label>状态<select v-model="adminExhibition.status"><option value="published">已发布</option><option value="draft">草稿</option><option value="closed">已下架</option></select></label>
+                  <label>封面 URL<input v-model="adminExhibition.cover_image_url"></label>
+                </div>
+                <label>简介<textarea v-model="adminExhibition.description"></textarea></label>
+                <div class="row"><button @click="saveExhibition">保存展览</button><button class="secondary" @click="resetExhibitionForm">清空</button></div>
+              </div>
+              <table>
+                <thead><tr><th>展览</th><th>地点</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody><tr v-for="item in adminExhibitions" :key="item.id"><td>{{ item.title }}</td><td>{{ item.location }}</td><td>{{ item.status }}</td><td><button class="secondary" @click="editExhibition(item)">编辑</button> <button class="ghost" @click="closeExhibition(item.id)">下架</button></td></tr></tbody>
+              </table>
+            </template>
+
+            <template v-if="adminTab==='collections'">
+              <div class="panel stack">
+                <h3>新增/修改藏品</h3>
+                <div class="form-grid">
+                  <label>所属展览<select v-model="adminCollection.exhibition_id"><option disabled value="">请选择展览</option><option v-for="item in adminExhibitions" :key="item.id" :value="item.id">{{ item.title }}</option></select></label>
+                  <label>名称<input v-model="adminCollection.name"></label>
+                  <label>类别<input v-model="adminCollection.category"></label>
+                  <label>年代<input v-model="adminCollection.dynasty"></label>
+                  <label>图片 URL<input v-model="adminCollection.image_url"></label>
+                </div>
+                <label>介绍<textarea v-model="adminCollection.description"></textarea></label>
+                <div class="row"><button @click="saveCollection">保存藏品</button><button class="secondary" @click="resetCollectionForm">清空</button></div>
+              </div>
+              <table>
+                <thead><tr><th>藏品</th><th>所属展览</th><th>类别</th><th>年代</th><th>操作</th></tr></thead>
+                <tbody><tr v-for="item in adminCollections" :key="item.id"><td>{{ item.name }}</td><td>{{ item.exhibition_title }}</td><td>{{ item.category }}</td><td>{{ item.dynasty }}</td><td><button class="secondary" @click="editCollection(item)">编辑</button> <button class="ghost" @click="deleteCollection(item.id)">删除</button></td></tr></tbody>
+              </table>
+            </template>
+
+            <template v-if="adminTab==='activities'">
+              <div class="panel stack">
+                <h3>新增/修改活动</h3>
+                <div class="form-grid">
+                  <label>名称<input v-model="adminActivity.title"></label>
+                  <label>时间<input v-model="adminActivity.activity_time" type="datetime-local"></label>
+                  <label>地点<input v-model="adminActivity.location"></label>
+                  <label>人数限制<input v-model.number="adminActivity.capacity" type="number" min="1"></label>
+                  <label>状态<select v-model="adminActivity.status"><option value="published">开放报名</option><option value="draft">草稿</option><option value="closed">已下架/截止</option></select></label>
+                  <label>封面 URL<input v-model="adminActivity.cover_image_url"></label>
+                </div>
+                <label>简介<textarea v-model="adminActivity.description"></textarea></label>
+                <div class="row"><button @click="saveActivity">保存活动</button><button class="secondary" @click="resetActivityForm">清空</button></div>
+              </div>
+              <table>
+                <thead><tr><th>活动</th><th>时间</th><th>地点</th><th>状态</th><th>报名</th><th>操作</th></tr></thead>
+                <tbody><tr v-for="item in adminActivities" :key="item.id"><td>{{ item.title }}</td><td>{{ formatDateTime(item.activity_time) }}</td><td>{{ item.location }}</td><td>{{ item.status }}</td><td>{{ item.registered_count }} / {{ item.capacity }}</td><td><button class="secondary" @click="editActivity(item)">编辑</button> <button class="ghost" @click="closeActivity(item.id)">下架</button></td></tr></tbody>
+              </table>
+            </template>
+
+            <template v-if="adminTab==='reservations'">
+              <h3>预约数据</h3>
+              <table>
+                <thead><tr><th>游客</th><th>日期</th><th>时间段</th><th>状态</th></tr></thead>
+                <tbody><tr v-for="item in adminReservations" :key="item.id"><td>{{ item.user.username }}</td><td>{{ item.slot.visit_date }}</td><td>{{ item.slot.time_slot }}</td><td>{{ statusLabel(item.status) }}</td></tr></tbody>
+              </table>
+            </template>
           </template>
         </section>
 
@@ -335,13 +386,18 @@
             activities: [],
             activityRegistrations: [],
             guides: [],
+            adminTab: "exhibitions",
             adminExhibitions: [],
+            adminCollections: [],
+            adminActivities: [],
             adminReservations: [],
             volunteerActivities: [],
             volunteerRegistrations: [],
             loginForm: { username: "", password: "" },
             registerForm: { username: "", password: "", phone: "", email: "" },
             adminExhibition: { title: "", description: "", start_date: "", end_date: "", location: "", status: "published", cover_image_url: "" },
+            adminCollection: { exhibition_id: "", name: "", category: "", dynasty: "", description: "", image_url: "" },
+            adminActivity: { title: "", description: "", activity_time: "", location: "", capacity: 20, status: "published", cover_image_url: "" },
           };
         },
         computed: {
@@ -447,17 +503,26 @@
           },
           async loadAdmin() {
             if (!this.isAdmin) return;
-            this.adminExhibitions = await this.api("/admin/exhibitions/");
-            this.adminReservations = await this.api("/admin/reservations/");
+            const [exhibitions, collections, activities, reservations] = await Promise.all([
+              this.api("/admin/exhibitions/"),
+              this.api("/admin/collections/"),
+              this.api("/admin/activities/"),
+              this.api("/admin/reservations/"),
+            ]);
+            this.adminExhibitions = exhibitions;
+            this.adminCollections = collections;
+            this.adminActivities = activities;
+            this.adminReservations = reservations;
           },
           editExhibition(item) { this.adminExhibition = { ...item }; },
+          resetExhibitionForm() { this.adminExhibition = { title: "", description: "", start_date: "", end_date: "", location: "", status: "published", cover_image_url: "" }; },
           async saveExhibition() {
             try {
               const item = this.adminExhibition;
               const path = item.id ? `/admin/exhibitions/${item.id}/` : "/admin/exhibitions/";
               const method = item.id ? "PUT" : "POST";
               await this.api(path, { method, body: JSON.stringify(item) });
-              this.adminExhibition = { title: "", description: "", start_date: "", end_date: "", location: "", status: "published", cover_image_url: "" };
+              this.resetExhibitionForm();
               await Promise.all([this.loadAdmin(), this.loadExhibitions()]);
               this.toast("展览已保存。");
             } catch (error) { this.toast(error.message, "error"); }
@@ -467,6 +532,54 @@
               await this.api(`/admin/exhibitions/${id}/`, { method: "DELETE" });
               await Promise.all([this.loadAdmin(), this.loadExhibitions()]);
               this.toast("展览已下架。");
+            } catch (error) { this.toast(error.message, "error"); }
+          },
+          editCollection(item) { this.adminCollection = { ...item }; },
+          resetCollectionForm() { this.adminCollection = { exhibition_id: "", name: "", category: "", dynasty: "", description: "", image_url: "" }; },
+          async saveCollection() {
+            try {
+              const item = this.adminCollection;
+              const payload = { ...item, exhibition_id: Number(item.exhibition_id) };
+              const path = item.id ? `/admin/collections/${item.id}/` : "/admin/collections/";
+              const method = item.id ? "PUT" : "POST";
+              await this.api(path, { method, body: JSON.stringify(payload) });
+              this.resetCollectionForm();
+              await Promise.all([this.loadAdmin(), this.loadExhibitions()]);
+              this.toast("藏品已保存。");
+            } catch (error) { this.toast(error.message, "error"); }
+          },
+          async deleteCollection(id) {
+            try {
+              await this.api(`/admin/collections/${id}/`, { method: "DELETE" });
+              await Promise.all([this.loadAdmin(), this.loadExhibitions()]);
+              this.toast("藏品已删除。");
+            } catch (error) { this.toast(error.message, "error"); }
+          },
+          editActivity(item) { this.adminActivity = { ...item, activity_time: this.toDatetimeLocal(item.activity_time) }; },
+          resetActivityForm() { this.adminActivity = { title: "", description: "", activity_time: "", location: "", capacity: 20, status: "published", cover_image_url: "" }; },
+          toDatetimeLocal(value) {
+            if (!value) return "";
+            const date = new Date(value);
+            date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+            return date.toISOString().slice(0, 16);
+          },
+          async saveActivity() {
+            try {
+              const item = this.adminActivity;
+              const payload = { ...item, capacity: Number(item.capacity) || 1 };
+              const path = item.id ? `/admin/activities/${item.id}/` : "/admin/activities/";
+              const method = item.id ? "PUT" : "POST";
+              await this.api(path, { method, body: JSON.stringify(payload) });
+              this.resetActivityForm();
+              await Promise.all([this.loadAdmin(), this.loadActivities()]);
+              this.toast("活动已保存。");
+            } catch (error) { this.toast(error.message, "error"); }
+          },
+          async closeActivity(id) {
+            try {
+              await this.api(`/admin/activities/${id}/`, { method: "DELETE" });
+              await Promise.all([this.loadAdmin(), this.loadActivities()]);
+              this.toast("活动已下架。");
             } catch (error) { this.toast(error.message, "error"); }
           },
           async loadVolunteer() {

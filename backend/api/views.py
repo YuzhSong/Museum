@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db import IntegrityError, transaction
 from django.db.models import F
+from django.utils.dateparse import parse_datetime
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.decorators import api_view
@@ -389,7 +390,13 @@ def activity_from_request(data, instance=None):
     item = instance or MuseumActivity()
     for field in ["title", "description", "activity_time", "location", "capacity", "status", "cover_image_url"]:
         if field in data:
-            setattr(item, field, data[field])
+            value = data[field]
+            if field == "activity_time" and isinstance(value, str):
+                parsed = parse_datetime(value)
+                if parsed and timezone.is_naive(parsed):
+                    parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+                value = parsed or value
+            setattr(item, field, value)
     item.save()
     if "volunteer_ids" in data:
         ActivityVolunteer.objects.filter(activity=item).delete()
