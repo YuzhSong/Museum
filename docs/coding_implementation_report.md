@@ -6,7 +6,7 @@
 
 - **游客**：浏览展览与藏品、按日期场次预约参观门票、报名博物馆活动、查看个人预约与报名记录、浏览馆内导览信息
 - **管理员**：维护展览、藏品、活动及导览信息，查看各场次预约数据
-- **志愿者/讲解员**：查看自己被分配负责的活动，以及对应活动的报名名单
+- **志愿者/讲解员**：浏览可申请活动并提交参与申请，查看申请状态，已通过后可查看对应活动的报名名单
 
 系统覆盖两条关键业务闭环：①游客从浏览展览 → 查看藏品 → 预约门票 → 确认预约的端到端流程；②管理员新增展览 → 添加藏品 → 发布 → 查看预约数据的后台维护闭环。这两个闭环构成系统 MVP 的核心价值：让游客能完成参观前的信息获取与预约操作，让管理员能维护内容并掌握预约情况。
 
@@ -54,9 +54,12 @@
 
 ### 3.5 志愿者模块（US-12）
 
-- 志愿者登录后可查看自己被分配负责的活动列表（通过 `ActivityVolunteer` 中间表关联）。
-- 点击某活动后可查看该活动的完整报名名单（含报名人用户名、邮箱、手机号、报名时间）。
-- 权限校验：志愿者只能查看自己负责活动的报名数据，访问其他活动的报名列表返回 403。
+- **可申请活动**：志愿者登录后可浏览所有已发布活动，选择感兴趣的活动提交参与申请。
+- **我的申请**：查看申请状态（待审批 / 已通过 / 已拒绝），被拒绝后可重新申请。
+- **已分配活动**：申请通过后可查看负责活动的完整报名名单（含报名人用户名、手机号、报名状态）。
+- **管理员审批**：管理员在后台「申请审批」标签页中查看待审批申请，逐一通过或拒绝。
+- **权限校验**：志愿者只能查看自己负责活动的报名数据，访问其他活动的报名列表返回 403。
+- `ActivityVolunteer` 中间表新增 `status` 字段（pending/approved/rejected）和 `applied_at` 申请时间，支持完整的申请-审批工作流。
 
 ### 3.6 导览模块（US-13）
 
@@ -87,7 +90,7 @@
 | `MuseumActivity` | 博物馆活动 | title, activity_time, capacity, status | User (M:N, through ActivityVolunteer) |
 | `ActivityRegistration` | 活动报名 | register_time, status | User (N:1), MuseumActivity (N:1) |
 | `GuideInfo` | 导览信息 | hall_name, route_description, text_guide, map_image_url | Exhibition (N:1, nullable) |
-| `ActivityVolunteer` | 活动-志愿者关联 | — | MuseumActivity (N:1), User (N:1) |
+| `ActivityVolunteer` | 活动-志愿者关联（含申请状态） | status, applied_at | MuseumActivity (N:1), User (N:1) |
 
 预约与场次通过 `unique_together = (“user”, “slot”)` 确保同一用户不对同一场次重复预约。活动报名同理，`unique_together = (“user”, “activity”)` 防止重复报名。`booked_count` 和 `registered_count` 通过数据库事务 + `select_for_update()` 行级锁保证并发安全。
 
@@ -133,6 +136,12 @@
 | PUT/DELETE | `/api/admin/guides/{id}/` | 修改 / 删除导览 | admin |
 | GET | `/api/volunteer/activities/` | 志愿者负责活动列表 | volunteer |
 | GET | `/api/volunteer/activities/{id}/registrations/` | 查看活动报名名单 | volunteer（需关联） |
+| GET | `/api/volunteer/available-activities/` | 可申请活动列表 | volunteer |
+| POST | `/api/volunteer/activities/{id}/apply/` | 申请参与活动 | volunteer |
+| GET | `/api/volunteer/my-applications/` | 我的申请记录 | volunteer |
+| GET | `/api/admin/applications/` | 待审批申请列表 | admin |
+| POST | `/api/admin/applications/{id}/approve/` | 通过申请 | admin |
+| POST | `/api/admin/applications/{id}/reject/` | 拒绝申请 | admin |
 
 ## 6. 前端实现
 

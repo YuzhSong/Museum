@@ -416,7 +416,10 @@ def volunteer_activities(request):
     user, error = require_role(request, Profile.ROLE_VOLUNTEER)
     if error:
         return error
-    rows = MuseumActivity.objects.filter(activityvolunteer__volunteer=user).order_by("activity_time")
+    rows = MuseumActivity.objects.filter(
+        activityvolunteer__volunteer=user,
+        activityvolunteer__status=ActivityVolunteer.STATUS_APPROVED,
+    ).order_by("activity_time")
     return ok([activity_payload(row) for row in rows])
 
 
@@ -425,10 +428,94 @@ def volunteer_activity_registrations(request, pk):
     user, error = require_role(request, Profile.ROLE_VOLUNTEER)
     if error:
         return error
-    if not ActivityVolunteer.objects.filter(activity_id=pk, volunteer=user).exists():
-        return fail("只能查看自己负责活动的报名情况。", 403)
+    if not ActivityVolunteer.objects.filter(
+        activity_id=pk, volunteer=user, status=ActivityVolunteer.STATUS_APPROVED
+    ).exists():
+        return fail("只能查看自己已通过申请的活动报名情况。", 403)
     rows = ActivityRegistration.objects.select_related("activity", "user", "user__profile").filter(activity_id=pk).order_by("register_time")
     return ok([registration_payload(row) for row in rows])
+
+
+@api_view(["GET"])
+def volunteer_available_activities(request):
+    user, error = require_role(request, Profile.ROLE_VOLUNTEER)
+    if error:
+        return error
+    applied_ids = ActivityVolunteer.objects.filter(volunteer=user).values_list("activity_id", flat=True)
+    rows = MuseumActivity.objects.filter(status="published").exclude(id__in=applied_ids).order_by("activity_time")
+    return ok([activity_payload(row) for row in rows])
+
+
+@api_view(["POST"])
+def volunteer_apply(request, pk):
+    user, error = require_role(request, Profile.ROLE_VOLUNTEER)
+    if error:
+        return error
+    activity = get_object_or_404(MuseumActivity, pk=pk)
+    av, created = ActivityVolunteer.objects.get_or_create(
+        activity=activity, volunteer=user,
+        defaults={"status": ActivityVolunteer.STATUS_PENDING},
+    )
+    if not created:
+        if av.status == ActivityVolunteer.STATUS_REJECTED:
+            av.status = ActivityVolunteer.STATUS_PENDING
+            av.save(update_fields=["status"])
+        else:
+            return fail("你已申请或已参与该活动。", 409)
+    return ok({"status": av.status, "applied_at": av.applied_at.isoformat() if av.applied_at else None})
+
+
+@api_view(["GET"])
+def volunteer_my_applications(request):
+    user, error = require_role(request, Profile.ROLE_VOLUNTEER)
+    if error:
+        return error
+    rows = ActivityVolunteer.objects.select_related("activity").filter(volunteer=user).order_by("-applied_at")
+    return ok([{
+        "id": rv.id,
+        "activity": activity_payload(rv.activity),
+        "status": rv.status,
+        "applied_at": rv.applied_at.isoformat() if rv.applied_at else None,
+    } for rv in rows])
+
+
+@api_view(["GET"])
+def admin_applications(request):
+    user, error = require_role(request, Profile.ROLE_ADMIN)
+    if error:
+        return error
+    rows = ActivityVolunteer.objects.select_related("activity", "volunteer", "volunteer__profile").filter(
+        status=ActivityVolunteer.STATUS_PENDING
+    ).order_by("-applied_at")
+    return ok([{
+        "id": rv.id,
+        "activity": activity_payload(rv.activity),
+        "volunteer": volunteer_payload(rv.volunteer),
+        "status": rv.status,
+        "applied_at": rv.applied_at.isoformat() if rv.applied_at else None,
+    } for rv in rows])
+
+
+@api_view(["POST"])
+def admin_approve_application(request, pk):
+    user, error = require_role(request, Profile.ROLE_ADMIN)
+    if error:
+        return error
+    rv = get_object_or_404(ActivityVolunteer, pk=pk)
+    rv.status = ActivityVolunteer.STATUS_APPROVED
+    rv.save(update_fields=["status"])
+    return ok({"status": rv.status})
+
+
+@api_view(["POST"])
+def admin_reject_application(request, pk):
+    user, error = require_role(request, Profile.ROLE_ADMIN)
+    if error:
+        return error
+    rv = get_object_or_404(ActivityVolunteer, pk=pk)
+    rv.status = ActivityVolunteer.STATUS_REJECTED
+    rv.save(update_fields=["status"])
+    return ok({"status": rv.status})
 
 
 @api_view(["GET"])

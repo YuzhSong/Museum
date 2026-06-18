@@ -10,7 +10,7 @@ GitHub 仓库：[YuzhSong/Museum](https://github.com/YuzhSong/Museum)
 - 展览与藏品：展览列表、展览详情、关联藏品、藏品详情接口
 - 门票预约：场次查询、创建预约、查看个人预约、取消预约、管理员查看预约数据
 - 活动报名：活动列表、活动报名、个人报名记录
-- 志愿者/讲解员：查看自己负责活动及报名名单
+- 志愿者/讲解员：浏览活动并提交参与申请，查看申请状态，管理已通过活动的报名名单
 - 导览服务：推荐路线、展厅说明、文字导览
 - 后台管理：管理员维护展览、藏品、活动、导览信息
 
@@ -134,6 +134,12 @@ localStorage.setItem("museum_api_base", "http://127.0.0.1:8000/api")
 - `GET /api/activities/`
 - `POST /api/activities/{id}/register/`
 - `GET /api/volunteer/activities/`
+- `GET /api/volunteer/available-activities/`
+- `POST /api/volunteer/activities/{id}/apply/`
+- `GET /api/volunteer/my-applications/`
+- `GET /api/admin/applications/`
+- `POST /api/admin/applications/{id}/approve/`
+- `POST /api/admin/applications/{id}/reject/`
 - `GET /api/guides/`
 - `POST /api/admin/exhibitions/`
 

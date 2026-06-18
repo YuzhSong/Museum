@@ -160,6 +160,8 @@
         justify-content: center;
         gap: 2px;
         min-width: 0;
+        flex-wrap: nowrap;
+        overflow: hidden;
       }
 
       .top-nav button,
@@ -180,6 +182,7 @@
         font-size: 14px;
         letter-spacing: 0.04em;
         position: relative;
+        white-space: nowrap;
       }
 
       .top-nav button.active,
@@ -202,6 +205,7 @@
         align-items: center;
         justify-content: flex-end;
         gap: 10px;
+        flex-wrap: nowrap;
       }
 
       .mini-action {
@@ -210,11 +214,25 @@
         border-radius: 14px;
         color: var(--muted);
         border: 1px solid transparent;
+        white-space: nowrap;
       }
 
       .mini-action.label {
         background: rgba(255, 255, 255, 0.85);
         border-color: var(--line);
+      }
+
+      .user-label {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+        padding: 0 14px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.85);
+        border: 1px solid var(--line);
+        color: var(--text);
+        font-size: 14px;
+        white-space: nowrap;
       }
 
       .ghost-btn,
@@ -526,6 +544,8 @@
 
       .card {
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
       }
 
       .card.tall-card .card-image {
@@ -552,6 +572,22 @@
       .auth-panel,
       .stat-card {
         padding: 18px;
+      }
+
+      .card-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+
+      .card-body .card-actions {
+        margin-top: auto;
+      }
+
+      .activity-card .card-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
       }
 
       .compact-card .card-body {
@@ -660,6 +696,29 @@
         margin: 6px 0 4px;
         font-size: 14px;
         line-height: 1.35;
+      }
+
+      .masonry-waterfall {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .masonry-waterfall .masonry-col {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .masonry-waterfall .masonry-image {
+        aspect-ratio: auto;
+      }
+
+      .masonry-waterfall .masonry-copy h3 {
+        font-size: 15px;
+        line-height: 1.4;
       }
 
       .masonry-copy p {
@@ -971,6 +1030,10 @@
           grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
+        .masonry-waterfall .masonry-col:nth-child(n+4) {
+          display: none;
+        }
+
         .activity-grid {
           grid-template-columns: 1fr;
         }
@@ -1010,6 +1073,10 @@
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
+        .masonry-waterfall .masonry-col:nth-child(n+3) {
+          display: none;
+        }
+
         .activity-card {
           grid-template-columns: 1fr;
         }
@@ -1035,7 +1102,7 @@
             <div class="brand-mark serif">艺</div>
             <div class="brand-copy">
               <b>中国工艺美术馆</b>
-              <span>工艺美术与非遗展示服务平台</span>
+              <span>中国工艺美术馆预约与导览服务平台</span>
             </div>
           </div>
 
@@ -1050,16 +1117,11 @@
           </nav>
 
           <div class="header-tools">
-            <span class="mini-action label" v-if="user">{{ user.username }} · {{ roleLabel(user.role) }}</span>
-            <button class="mini-action" @click="go('home')">搜索</button>
-            <button class="mini-action" @click="go('home')">中文</button>
+            <span class="user-label" v-if="user">{{ user.username }} · {{ roleLabel(user.role) }}</span>
             <button class="mini-action" v-if="isAdmin" @click="go('admin')">后台</button>
-            <button class="mini-action" v-if="isVolunteer" @click="go('volunteer')">志愿者</button>
+            <button class="mini-action" v-if="isVolunteer" @click="go('volunteer')">工作台</button>
             <button class="ghost-btn" v-if="user" @click="logout">退出</button>
-            <template v-else>
-              <button class="ghost-btn" @click="openAuth('login')">登录</button>
-              <button class="pill-btn" @click="openAuth('register')">注册</button>
-            </template>
+            <button class="pill-btn" v-else @click="openAuth('login')">登录/注册</button>
           </div>
         </div>
       </header>
@@ -1152,7 +1214,7 @@
                   <div class="meta">{{ locationLabel(item.location) }} · {{ item.start_date }} - {{ item.end_date }}</div>
                   <h3>{{ exhibitionTitle(item) }}</h3>
                   <p>{{ exhibitionSummary(item) }}</p>
-                  <div class="card-actions" style="margin-top: 14px">
+                  <div class="card-actions">
                     <button class="ghost-btn" @click="openExhibition(item.id)">查看展览</button>
                   </div>
                 </div>
@@ -1244,7 +1306,7 @@
                 <div class="meta">{{ locationLabel(item.location) }} · {{ item.start_date }} - {{ item.end_date }}</div>
                 <h3>{{ exhibitionTitle(item) }}</h3>
                 <p>{{ exhibitionSummary(item) }}</p>
-                <div class="card-actions" style="margin-top: 16px">
+                <div class="card-actions">
                   <button class="pill-btn" @click="openExhibition(item.id)">查看详情</button>
                 </div>
               </div>
@@ -1329,21 +1391,23 @@
             <div class="meta">{{ filteredCollections.length }} 件公开藏品</div>
           </div>
 
-          <div class="masonry">
-            <article
-              class="masonry-card"
-                v-for="(item, index) in filteredCollections"
+          <div class="masonry-waterfall">
+            <div class="masonry-col" v-for="(col, colIdx) in waterfallColumns" :key="colIdx">
+              <article
+                class="masonry-card"
+                v-for="(item, index) in col"
                 :key="item.id"
-            >
-              <img class="masonry-image" :src="imageFor(item.image_url)" :alt="item.name" />
-              <div class="masonry-copy">
-                <div class="meta">{{ categoryLabel(item.category) }}</div>
-                <h3>{{ collectionTitle(item, index) }}</h3>
-                <div class="card-actions" style="margin-top: 8px">
-                  <button class="link-btn" @click="openCollection(item.id)">查看详情</button>
+              >
+                <img class="masonry-image" :src="imageFor(item.image_url)" :alt="item.name" loading="lazy" />
+                <div class="masonry-copy">
+                  <div class="meta">{{ categoryLabel(item.category) }}</div>
+                  <h3>{{ collectionTitle(item) }}</h3>
+                  <div class="card-actions" style="margin-top: 8px">
+                    <button class="link-btn" @click="openCollection(item.id)">查看详情</button>
+                  </div>
                 </div>
-              </div>
-            </article>
+              </article>
+            </div>
           </div>
         </section>
 
@@ -1389,7 +1453,7 @@
                 <h3>{{ activityTitle(item) }}</h3>
                 <p>{{ activitySummary(item, true) }}</p>
                 <div class="list-meta" style="margin-top: 12px">已报名 {{ item.registered_count }} / {{ item.capacity }}</div>
-                <div class="card-actions" style="margin-top: 16px">
+                <div class="card-actions">
                   <button class="pill-btn" @click="openActivity(item.id)">查看详情</button>
                 </div>
               </div>
@@ -1423,12 +1487,13 @@
               <div class="sub-actions" style="margin-top: 18px">
                 <button
                   class="pill-btn"
-                  :disabled="!isLoggedIn || selectedActivity.available_count <= 0"
+                  :disabled="!isLoggedIn || selectedActivity.available_count <= 0 || isCurrentActivityRegistered"
                   @click="registerActivity(selectedActivity.id)"
                 >
-                  立即报名
+                  {{ isCurrentActivityRegistered ? '已报名' : '立即报名' }}
                 </button>
                 <button class="ghost-btn" v-if="!isLoggedIn" @click="openAuth('login')">登录后报名</button>
+                <span class="meta" v-else-if="isCurrentActivityRegistered" style="display: flex; align-items: center; gap: 6px;">✅ 你已成功报名该活动，可在「我的」中查看。</span>
               </div>
             </div>
           </div>
@@ -1448,7 +1513,7 @@
                 <div class="meta">{{ item.exhibition_title ? exhibitionTitle({ title: item.exhibition_title }) : '公共导览信息' }}</div>
                 <h3>{{ item.hall_name }}</h3>
                 <p>{{ shorten(item.route_description, 100) }}</p>
-                <div class="card-actions" style="margin-top: 16px">
+                <div class="card-actions">
                   <button class="ghost-btn" @click="openGuide(item.id)">查看导览</button>
                 </div>
               </div>
@@ -1492,17 +1557,12 @@
           </div>
           <div class="two-grid">
             <div class="panel">
-              <div class="filter-row" style="margin-bottom: 16px">
-                <button class="date-chip" :class="{ active: selectedDate === '' }" @click="selectedDate = ''">全部日期</button>
-                <button
-                  v-for="date in availableDates"
-                  :key="date"
-                  class="date-chip"
-                  :class="{ active: selectedDate === date }"
-                  @click="selectedDate = date"
-                >
-                  {{ date }}
-                </button>
+              <div class="filter-row" style="margin-bottom: 16px; align-items: center; gap: 10px;">
+                <label style="display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; max-width: 240px;">
+                  <span style="font-size: 18px;">📅</span>
+                  <input type="date" v-model="selectedDate" style="border-radius: 14px; border: 1px solid var(--line); padding: 10px 14px; background: rgba(255,255,255,0.88); color: var(--text);" />
+                </label>
+                <button class="chip-btn" v-if="selectedDate" @click="selectedDate = ''">清除日期</button>
               </div>
 
               <div class="slot-list" v-if="filteredSlots.length">
@@ -1670,11 +1730,12 @@
             <button :class="{ active: adminTab === 'activities' }" @click="adminTab = 'activities'">活动</button>
             <button :class="{ active: adminTab === 'guides' }" @click="adminTab = 'guides'">导览</button>
             <button :class="{ active: adminTab === 'reservations' }" @click="adminTab = 'reservations'">预约数据</button>
+            <button :class="{ active: adminTab === 'applications' }" @click="adminTab = 'applications'">申请审批</button>
           </div>
 
           <template v-if="adminTab === 'exhibitions'">
-            <div class="panel">
-              <h3>展览信息</h3>
+            <div class="panel" v-if="adminFormVisible">
+              <h3>{{ adminExhibition.id ? '编辑展览' : '新建展览' }}</h3>
               <div class="form-grid">
                 <label>展览名称<input v-model="adminExhibition.title" /></label>
                 <label>展厅位置<input v-model="adminExhibition.location" /></label>
@@ -1686,10 +1747,13 @@
               <label style="margin-top: 14px">展览简介<textarea v-model="adminExhibition.description"></textarea></label>
               <div class="sub-actions" style="margin-top: 16px">
                 <button class="pill-btn" @click="saveExhibition">保存展览</button>
-                <button class="ghost-btn" @click="resetExhibitionForm">清空</button>
+                <button class="ghost-btn" @click="cancelAdminForm">取消</button>
               </div>
             </div>
-            <table style="margin-top: 18px">
+            <div class="sub-actions" style="margin-bottom: 18px" v-else>
+              <button class="pill-btn" @click="newExhibition">＋ 新建展览</button>
+            </div>
+            <table>
               <thead><tr><th>展览</th><th>地点</th><th>日期</th><th>状态</th><th>操作</th></tr></thead>
               <tbody>
                 <tr v-for="item in adminExhibitions" :key="item.id">
@@ -1709,8 +1773,8 @@
           </template>
 
           <template v-else-if="adminTab === 'collections'">
-            <div class="panel">
-              <h3>藏品信息</h3>
+            <div class="panel" v-if="adminFormVisible">
+              <h3>{{ adminCollection.id ? '编辑藏品' : '新建藏品' }}</h3>
               <div class="form-grid">
                 <label>所属展览<select v-model="adminCollection.exhibition_id"><option value="">请选择</option><option v-for="item in adminExhibitions" :key="item.id" :value="item.id">{{ item.title }}</option></select></label>
                 <label>藏品名称<input v-model="adminCollection.name" /></label>
@@ -1721,10 +1785,13 @@
               <label style="margin-top: 14px">简介<textarea v-model="adminCollection.description"></textarea></label>
               <div class="sub-actions" style="margin-top: 16px">
                 <button class="pill-btn" @click="saveCollection">保存藏品</button>
-                <button class="ghost-btn" @click="resetCollectionForm">清空</button>
+                <button class="ghost-btn" @click="cancelAdminForm">取消</button>
               </div>
             </div>
-            <table style="margin-top: 18px">
+            <div class="sub-actions" style="margin-bottom: 18px" v-else>
+              <button class="pill-btn" @click="newCollection">＋ 新建藏品</button>
+            </div>
+            <table>
               <thead><tr><th>藏品</th><th>类别</th><th>所属展览</th><th>操作</th></tr></thead>
               <tbody>
                 <tr v-for="item in adminCollections" :key="item.id">
@@ -1743,8 +1810,8 @@
           </template>
 
           <template v-else-if="adminTab === 'activities'">
-            <div class="panel">
-              <h3>活动信息</h3>
+            <div class="panel" v-if="adminFormVisible">
+              <h3>{{ adminActivity.id ? '编辑活动' : '新建活动' }}</h3>
               <div class="form-grid">
                 <label>活动名称<input v-model="adminActivity.title" /></label>
                 <label>地点<input v-model="adminActivity.location" /></label>
@@ -1766,10 +1833,13 @@
               </label>
               <div class="sub-actions" style="margin-top: 16px">
                 <button class="pill-btn" @click="saveActivity">保存活动</button>
-                <button class="ghost-btn" @click="resetActivityForm">清空</button>
+                <button class="ghost-btn" @click="cancelAdminForm">取消</button>
               </div>
             </div>
-            <table style="margin-top: 18px">
+            <div class="sub-actions" style="margin-bottom: 18px" v-else>
+              <button class="pill-btn" @click="newActivity">＋ 新建活动</button>
+            </div>
+            <table>
               <thead><tr><th>活动</th><th>时间</th><th>地点</th><th>状态</th><th>操作</th></tr></thead>
               <tbody>
                 <tr v-for="item in adminActivities" :key="item.id">
@@ -1789,8 +1859,8 @@
           </template>
 
           <template v-else-if="adminTab === 'guides'">
-            <div class="panel">
-              <h3>导览信息</h3>
+            <div class="panel" v-if="adminFormVisible">
+              <h3>{{ adminGuide.id ? '编辑导览' : '新建导览' }}</h3>
               <div class="form-grid">
                 <label>关联展览<select v-model="adminGuide.exhibition_id"><option value="">无</option><option v-for="item in adminExhibitions" :key="item.id" :value="item.id">{{ item.title }}</option></select></label>
                 <label>展厅名称<input v-model="adminGuide.hall_name" /></label>
@@ -1800,10 +1870,13 @@
               <label style="margin-top: 14px">文字导览<textarea v-model="adminGuide.text_guide"></textarea></label>
               <div class="sub-actions" style="margin-top: 16px">
                 <button class="pill-btn" @click="saveGuide">保存导览</button>
-                <button class="ghost-btn" @click="resetGuideForm">清空</button>
+                <button class="ghost-btn" @click="cancelAdminForm">取消</button>
               </div>
             </div>
-            <table style="margin-top: 18px">
+            <div class="sub-actions" style="margin-bottom: 18px" v-else>
+              <button class="pill-btn" @click="newGuide">＋ 新建导览</button>
+            </div>
+            <table>
               <thead><tr><th>展厅</th><th>关联展览</th><th>操作</th></tr></thead>
               <tbody>
                 <tr v-for="item in adminGuides" :key="item.id">
@@ -1820,7 +1893,7 @@
             </table>
           </template>
 
-          <template v-else>
+          <template v-else-if="adminTab === 'reservations'">
             <div class="panel">
               <div class="filter-row">
                 <input v-model="adminReservationDate" type="date" style="max-width: 220px" />
@@ -1840,43 +1913,108 @@
               </tbody>
             </table>
           </template>
+
+          <template v-else>
+            <div class="panel" v-if="!adminApplications.length">
+              <div class="empty-state">暂无待审批的志愿者申请。</div>
+            </div>
+            <table v-else>
+              <thead><tr><th>志愿者</th><th>申请活动</th><th>申请时间</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr v-for="app in adminApplications" :key="app.id">
+                  <td>{{ app.volunteer.real_name || app.volunteer.username }}</td>
+                  <td>{{ activityTitle(app.activity) }}</td>
+                  <td>{{ formatDateTime(app.applied_at) }}</td>
+                  <td>
+                    <div class="card-actions">
+                      <button class="pill-btn" @click="approveApplication(app.id)">通过</button>
+                      <button class="ghost-btn" @click="rejectApplication(app.id)">拒绝</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
         </section>
 
         <section v-else-if="route.view === 'volunteer'" class="section">
           <div class="section-head">
             <div>
               <h2>志愿者工作台</h2>
-              <p>查看分配到的活动，并浏览报名名单。</p>
+              <p>浏览活动并申请参与，查看申请状态与已分配活动的报名名单。</p>
             </div>
           </div>
-          <div class="two-grid">
-            <div class="record-list">
-              <div class="record" v-for="item in volunteerActivities" :key="item.id">
-                <strong>{{ activityTitle(item) }}</strong>
-                <div class="list-meta">{{ formatDateTime(item.activity_time) }} · {{ locationLabel(item.location) }}</div>
-                <div class="list-meta">已报名 {{ item.registered_count }} / {{ item.capacity }}</div>
-                <div class="list-meta">材料：{{ item.materials || '现场统一提供' }}</div>
-                <div class="sub-actions" style="margin-top: 12px">
-                  <button class="ghost-btn" @click="loadVolunteerRegistrations(item.id)">查看报名名单</button>
-                  <button class="ghost-btn" @click="openActivity(item.id)">活动详情</button>
+
+          <div class="tab-strip">
+            <button :class="{ active: volunteerTab === 'available' }" @click="volunteerTab = 'available'">可申请活动</button>
+            <button :class="{ active: volunteerTab === 'applications' }" @click="volunteerTab = 'applications'">我的申请</button>
+            <button :class="{ active: volunteerTab === 'assigned' }" @click="volunteerTab = 'assigned'">已分配活动</button>
+          </div>
+
+          <div v-if="volunteerTab === 'available'">
+            <div class="activity-grid" v-if="volunteerAvailableActivities.length">
+              <article class="activity-card" v-for="item in volunteerAvailableActivities" :key="item.id">
+                <img class="card-image" :src="imageFor(item.cover_image_url)" :alt="item.title" />
+                <div class="card-body">
+                  <div class="meta">{{ formatDateTime(item.activity_time) }} · {{ locationLabel(item.location) }}</div>
+                  <h3>{{ activityTitle(item) }}</h3>
+                  <p>{{ activitySummary(item) }}</p>
+                  <div class="list-meta" style="margin-top: 12px">已报名 {{ item.registered_count }} / {{ item.capacity }}</div>
+                  <div class="card-actions">
+                    <button class="pill-btn" @click="applyForActivity(item.id)">申请参加</button>
+                    <button class="ghost-btn" @click="openActivity(item.id)">查看详情</button>
+                  </div>
                 </div>
-                <div class="detail-inline">
-                  <p>适合人群：{{ item.target_audience || '公众观众' }}</p>
-                  <p style="margin-top: 8px">执行提示：{{ item.preparation_note || '请按时完成现场准备。' }}</p>
-                </div>
-              </div>
-              <div class="empty-state" v-if="!volunteerActivities.length">暂未分配活动。</div>
+              </article>
             </div>
-            <div class="panel">
-              <h3>报名名单</h3>
-              <div class="record-list" v-if="volunteerRegistrations.length">
-                <div class="record" v-for="item in volunteerRegistrations" :key="item.id">
-                  <strong>{{ item.user.real_name || item.user.username }}</strong>
-                  <div class="list-meta">{{ item.user.phone || '未填写手机号' }}</div>
-                  <div class="list-meta">报名状态：{{ activityStatusLabel(item.status) }}</div>
+            <div class="empty-state" v-else>暂无可申请的活动，所有已发布活动你已全部申请或参与。</div>
+          </div>
+
+          <div v-else-if="volunteerTab === 'applications'">
+            <div class="record-list" v-if="volunteerApplications.length">
+              <div class="record" v-for="app in volunteerApplications" :key="app.id">
+                <strong>{{ activityTitle(app.activity) }}</strong>
+                <div class="list-meta">{{ formatDateTime(app.activity.activity_time) }} · {{ locationLabel(app.activity.location) }}</div>
+                <span class="badge" :style="{ background: app.status === 'approved' ? 'rgba(46,125,50,0.12)' : app.status === 'rejected' ? 'rgba(166,31,36,0.12)' : 'rgba(195,160,99,0.2)', color: app.status === 'approved' ? '#2e7d32' : app.status === 'rejected' ? 'var(--brand)' : '#8d6e30' }">{{ applicationStatusLabel(app.status) }}</span>
+                <div class="list-meta" style="margin-top: 8px">申请时间：{{ formatDateTime(app.applied_at) }}</div>
+                <div class="sub-actions" style="margin-top: 12px">
+                  <button class="ghost-btn" @click="openActivity(app.activity.id)">查看详情</button>
                 </div>
               </div>
-              <div class="empty-state" v-else>选择左侧活动后查看报名名单。</div>
+            </div>
+            <div class="empty-state" v-else>还没有提交过活动申请。</div>
+          </div>
+
+          <div v-else>
+            <div class="two-grid">
+              <div class="record-list">
+                <div class="record" v-for="item in volunteerActivities" :key="item.id">
+                  <strong>{{ activityTitle(item) }}</strong>
+                  <div class="list-meta">{{ formatDateTime(item.activity_time) }} · {{ locationLabel(item.location) }}</div>
+                  <div class="list-meta">已报名 {{ item.registered_count }} / {{ item.capacity }}</div>
+                  <div class="list-meta">材料：{{ item.materials || '现场统一提供' }}</div>
+                  <div class="sub-actions" style="margin-top: 12px">
+                    <button class="ghost-btn" @click="loadVolunteerRegistrations(item.id)">查看报名名单</button>
+                    <button class="ghost-btn" @click="openActivity(item.id)">活动详情</button>
+                  </div>
+                  <div class="detail-inline">
+                    <p>适合人群：{{ item.target_audience || '公众观众' }}</p>
+                    <p style="margin-top: 8px">执行提示：{{ item.preparation_note || '请按时完成现场准备。' }}</p>
+                  </div>
+                </div>
+                <div class="empty-state" v-if="!volunteerActivities.length">暂未分配活动，去「可申请活动」中申请参与。</div>
+              </div>
+              <div class="panel">
+                <h3>报名名单</h3>
+                <div class="record-list" v-if="volunteerRegistrations.length">
+                  <div class="record" v-for="item in volunteerRegistrations" :key="item.id">
+                    <strong>{{ item.user.real_name || item.user.username }}</strong>
+                    <div class="list-meta">{{ item.user.phone || '未填写手机号' }}</div>
+                    <div class="list-meta">报名状态：{{ activityStatusLabel(item.status) }}</div>
+                  </div>
+                </div>
+                <div class="empty-state" v-else>选择左侧活动后查看报名名单。</div>
+              </div>
             </div>
           </div>
         </section>
@@ -2031,6 +2169,7 @@
             activeCollectionCategory: "全部",
             expandedReservationId: null,
             expandedRegistrationId: null,
+            adminFormVisible: false,
             loginForm: { username: "", password: "" },
             registerForm: { username: "", password: "", phone: "", email: "", real_name: "" },
             adminTab: "exhibitions",
@@ -2041,12 +2180,16 @@
             adminReservations: [],
             adminVolunteers: [],
             adminReservationDate: "",
+            adminApplications: [],
             adminExhibition: { title: "", description: "", start_date: "", end_date: "", location: "", status: "published", cover_image_url: "" },
             adminCollection: { exhibition_id: "", name: "", category: "", dynasty: "", description: "", image_url: "" },
             adminActivity: { title: "", description: "", activity_time: "", location: "", category: "", target_audience: "", materials: "", preparation_note: "", duration_minutes: 90, capacity: 20, status: "published", cover_image_url: "", volunteer_ids: [] },
             adminGuide: { exhibition_id: "", hall_name: "", route_description: "", text_guide: "", map_image_url: "" },
+            volunteerTab: "available",
             volunteerActivities: [],
             volunteerRegistrations: [],
+            volunteerAvailableActivities: [],
+            volunteerApplications: [],
           };
         },
         computed: {
@@ -2087,12 +2230,25 @@
           latestActivities() {
             return this.displayActivities.slice(0, 3);
           },
+          isCurrentActivityRegistered() {
+            if (!this.selectedActivity || !this.activityRegistrations.length) return false;
+            return this.activityRegistrations.some(
+              (r) => r.activity && r.activity.id === this.selectedActivity.id && r.status === 'active'
+            );
+          },
           collectionCategories() {
             return [...new Set(this.displayCollections.map((item) => item.category).filter(Boolean))];
           },
           filteredCollections() {
             if (this.activeCollectionCategory === "全部") return this.displayCollections;
             return this.displayCollections.filter((item) => item.category === this.activeCollectionCategory);
+          },
+          waterfallColumns() {
+            const cols = [[], [], [], []];
+            this.filteredCollections.forEach((item, i) => {
+              cols[i % 4].push(item);
+            });
+            return cols;
           },
           homeCollections() {
             return this.filteredCollections.slice(0, 12);
@@ -2105,8 +2261,10 @@
           },
         },
         watch: {
-          adminTab(value) {
-            if (value === "reservations") this.loadAdminReservations();
+          adminTab() {
+            this.adminFormVisible = false;
+            if (this.adminTab === "reservations") this.loadAdminReservations();
+            if (this.adminTab === "applications") this.loadAdminApplications();
           },
         },
         async mounted() {
@@ -2225,6 +2383,9 @@
           },
           activityStatusLabel(status) {
             return { active: "已报名", cancelled: "已取消" }[status] || status;
+          },
+          applicationStatusLabel(status) {
+            return { pending: "待审批", approved: "已通过", rejected: "已拒绝" }[status] || status;
           },
           navActive(key) {
             const map = {
@@ -2408,8 +2569,11 @@
             this.reservations = [];
             this.activityRegistrations = [];
             this.adminReservations = [];
+            this.adminApplications = [];
             this.volunteerActivities = [];
             this.volunteerRegistrations = [];
+            this.volunteerAvailableActivities = [];
+            this.volunteerApplications = [];
             localStorage.removeItem("museum_token");
             localStorage.removeItem("museum_user");
             this.notify("已退出登录。");
@@ -2466,11 +2630,19 @@
             this.adminReservationDate = "";
             this.loadAdminReservations();
           },
+          cancelAdminForm() {
+            this.adminFormVisible = false;
+          },
           resetExhibitionForm() {
             this.adminExhibition = { title: "", description: "", start_date: "", end_date: "", location: "", status: "published", cover_image_url: "" };
           },
+          newExhibition() {
+            this.resetExhibitionForm();
+            this.adminFormVisible = true;
+          },
           editExhibition(item) {
             this.adminExhibition = { ...item };
+            this.adminFormVisible = true;
           },
           async saveExhibition() {
             try {
@@ -2479,6 +2651,7 @@
               const method = item.id ? "PUT" : "POST";
               await this.api(path, { method, body: JSON.stringify(item) });
               this.resetExhibitionForm();
+              this.adminFormVisible = false;
               await Promise.all([this.loadAdminData(), this.loadExhibitions()]);
               await this.loadPublicCollections();
               this.notify("展览已保存。");
@@ -2499,8 +2672,13 @@
           resetCollectionForm() {
             this.adminCollection = { exhibition_id: "", name: "", category: "", dynasty: "", description: "", image_url: "" };
           },
+          newCollection() {
+            this.resetCollectionForm();
+            this.adminFormVisible = true;
+          },
           editCollection(item) {
             this.adminCollection = { ...item };
+            this.adminFormVisible = true;
           },
           async saveCollection() {
             try {
@@ -2510,6 +2688,7 @@
               const method = item.id ? "PUT" : "POST";
               await this.api(path, { method, body: JSON.stringify(payload) });
               this.resetCollectionForm();
+              this.adminFormVisible = false;
               await this.loadAdminData();
               await this.loadPublicCollections();
               this.notify("藏品已保存。");
@@ -2530,6 +2709,10 @@
           resetActivityForm() {
             this.adminActivity = { title: "", description: "", activity_time: "", location: "", category: "", target_audience: "", materials: "", preparation_note: "", duration_minutes: 90, capacity: 20, status: "published", cover_image_url: "", volunteer_ids: [] };
           },
+          newActivity() {
+            this.resetActivityForm();
+            this.adminFormVisible = true;
+          },
           editActivity(item) {
             this.adminActivity = {
               ...item,
@@ -2537,6 +2720,7 @@
               duration_minutes: item.duration_minutes || 90,
               volunteer_ids: (item.volunteer_ids || []).map(Number),
             };
+            this.adminFormVisible = true;
           },
           toDatetimeLocal(value) {
             if (!value) return "";
@@ -2556,6 +2740,7 @@
               const method = item.id ? "PUT" : "POST";
               await this.api(path, { method, body: JSON.stringify(payload) });
               this.resetActivityForm();
+              this.adminFormVisible = false;
               await Promise.all([this.loadAdminData(), this.loadActivities()]);
               this.notify("活动已保存。");
             } catch (error) {
@@ -2574,8 +2759,13 @@
           resetGuideForm() {
             this.adminGuide = { exhibition_id: "", hall_name: "", route_description: "", text_guide: "", map_image_url: "" };
           },
+          newGuide() {
+            this.resetGuideForm();
+            this.adminFormVisible = true;
+          },
           editGuide(item) {
             this.adminGuide = { ...item, exhibition_id: item.exhibition_id || "" };
+            this.adminFormVisible = true;
           },
           async saveGuide() {
             try {
@@ -2585,6 +2775,7 @@
               const method = item.id ? "PUT" : "POST";
               await this.api(path, { method, body: JSON.stringify(payload) });
               this.resetGuideForm();
+              this.adminFormVisible = false;
               await Promise.all([this.loadAdminData(), this.loadGuides()]);
               this.notify("导览信息已保存。");
             } catch (error) {
@@ -2600,8 +2791,54 @@
               this.notify(error.message, "error");
             }
           },
+          async loadAdminApplications() {
+            this.adminApplications = await this.api("/admin/applications/");
+          },
+          async approveApplication(id) {
+            try {
+              await this.api(`/admin/applications/${id}/approve/`, { method: "POST" });
+              await this.loadAdminApplications();
+              this.notify("申请已通过。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async rejectApplication(id) {
+            try {
+              await this.api(`/admin/applications/${id}/reject/`, { method: "POST" });
+              await this.loadAdminApplications();
+              this.notify("申请已拒绝。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
           async loadVolunteerData() {
+            await Promise.all([
+              this.loadVolunteerActivities(),
+              this.loadVolunteerAvailableActivities(),
+              this.loadVolunteerApplications(),
+            ]);
+          },
+          async loadVolunteerActivities() {
             this.volunteerActivities = await this.api("/volunteer/activities/");
+          },
+          async loadVolunteerAvailableActivities() {
+            this.volunteerAvailableActivities = await this.api("/volunteer/available-activities/");
+          },
+          async loadVolunteerApplications() {
+            this.volunteerApplications = await this.api("/volunteer/my-applications/");
+          },
+          async applyForActivity(id) {
+            try {
+              await this.api(`/volunteer/activities/${id}/apply/`, { method: "POST" });
+              await Promise.all([
+                this.loadVolunteerAvailableActivities(),
+                this.loadVolunteerApplications(),
+              ]);
+              this.notify("申请已提交，等待管理员审批。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
           },
           async loadVolunteerRegistrations(id) {
             try {

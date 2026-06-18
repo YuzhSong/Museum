@@ -4,6 +4,7 @@ import secrets
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.utils import timezone
 
 
 def default_auth_token_expires_at():
@@ -193,8 +194,18 @@ class GuideInfo(models.Model):
 
 
 class ActivityVolunteer(models.Model):
+    STATUS_PENDING = "pending"
+    STATUS_APPROVED = "approved"
+    STATUS_REJECTED = "rejected"
+
     activity = models.ForeignKey(MuseumActivity, on_delete=models.CASCADE)
     volunteer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    status = models.CharField(
+        max_length=20,
+        default=STATUS_APPROVED,
+        choices=[(STATUS_PENDING, "待审批"), (STATUS_APPROVED, "已通过"), (STATUS_REJECTED, "已拒绝")],
+    )
+    applied_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         unique_together = ("activity", "volunteer")
