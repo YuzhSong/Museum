@@ -1,5 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
 from django.db.models import F
 from django.utils.dateparse import parse_datetime
@@ -30,11 +32,25 @@ def fail(message, status=400):
     return Response({"detail": message}, status=status)
 
 
+@api_view(["GET"])
+def health(request):
+    return ok(
+        {
+            "status": "ok",
+            "service": "museum-backend",
+            "time_zone": timezone.get_current_timezone_name(),
+        }
+    )
+
+
 def current_user(request):
     header = request.headers.get("Authorization", "")
     if not header.startswith("Bearer "):
         return None
     token = AuthToken.objects.select_related("user", "user__profile").filter(key=header.removeprefix("Bearer ").strip()).first()
+    if token and token.expires_at <= timezone.now():
+        token.delete()
+        return None
     return token.user if token else None
 
 
@@ -128,6 +144,11 @@ def activity_payload(activity, include_volunteers=False):
         "description": activity.description,
         "activity_time": activity.activity_time,
         "location": activity.location,
+        "category": activity.category,
+        "target_audience": activity.target_audience,
+        "materials": activity.materials,
+        "preparation_note": activity.preparation_note,
+        "duration_minutes": activity.duration_minutes,
         "capacity": activity.capacity,
         "registered_count": activity.registered_count,
         "available_count": activity.available_count,
@@ -161,32 +182,72 @@ def guide_payload(guide):
     }
 
 
+def volunteer_payload(user):
+    profile = user.profile
+    return {
+        "id": user.id,
+        "username": user.username,
+        "real_name": profile.real_name,
+        "service_area": profile.service_area,
+        "email": user.email,
+        "phone": profile.phone,
+    }
+
+
+def validate_register_payload(username, password, phone, email):
+    if not username or not password:
+        return "用户名和密码不能为空。"
+    if len(username) < 2 or len(username) > 20:
+        return "用户名长度需为 2 到 20 位。"
+    if " " in username:
+        return "用户名不能包含空格。"
+    if len(password) < 6:
+        return "密码长度不能少于 6 位。"
+    if email:
+        try:
+            validate_email(email)
+        except ValidationError:
+            return "邮箱格式不正确。"
+    if phone and (not phone.isdigit() or len(phone) != 11 or not phone.startswith("1")):
+        return "手机号格式不正确。"
+    return None
+
+
 @api_view(["POST"])
 def register(request):
     data = request.data
     username = (data.get("username") or "").strip()
     password = data.get("password") or ""
     phone = (data.get("phone") or "").strip()
-    email = (data.get("email") or "").strip()
-    if not username or not password:
-        return fail("用户名和密码不能为空。")
-    if User.objects.filter(username=username).exists():
+    email = (data.get("email") or "").strip().lower()
+    payload_error = validate_register_payload(username, password, phone, email)
+    if payload_error:
+        return fail(payload_error)
+    if User.objects.filter(username__iexact=username).exists():
         return fail("用户名已存在。")
-    if email and User.objects.filter(email=email).exists():
+    if email and User.objects.filter(email__iexact=email).exists():
         return fail("邮箱已存在。")
     if phone and Profile.objects.filter(phone=phone).exists():
         return fail("手机号已存在。")
     user = User.objects.create_user(username=username, password=password, email=email)
     Profile.objects.create(user=user, phone=phone or None, role=Profile.ROLE_VISITOR, real_name=data.get("real_name", ""))
+    AuthToken.objects.filter(user=user).delete()
     token = AuthToken.objects.create(user=user)
     return ok({"token": token.key, "user": user_payload(user)}, 201)
 
 
 @api_view(["POST"])
 def login(request):
-    user = authenticate(username=request.data.get("username", ""), password=request.data.get("password", ""))
+    username = (request.data.get("username") or "").strip()
+    password = request.data.get("password", "") or ""
+    if not username or not password:
+        return fail("请输入用户名和密码。")
+    user = authenticate(username=username, password=password)
     if not user:
         return fail("账号或密码错误。", 401)
+    if not user.is_active:
+        return fail("账号已停用。", 403)
+    AuthToken.objects.filter(user=user).delete()
     token = AuthToken.objects.create(user=user)
     return ok({"token": token.key, "user": user_payload(user)})
 
@@ -255,9 +316,14 @@ def reservations(request):
         return fail("请选择参观场次。")
     with transaction.atomic():
         slot = get_object_or_404(VisitSlot.objects.select_for_update(), pk=slot_id)
+        if Reservation.objects.filter(user=user, slot=slot).exists():
+            return fail("你已预约过该场次。")
         if not slot.has_quota() or slot.visit_date < timezone.localdate():
             return fail("该时间段名额已满或不可预约。")
-        reservation = Reservation.objects.create(user=user, slot=slot)
+        try:
+            reservation = Reservation.objects.create(user=user, slot=slot)
+        except IntegrityError:
+            return fail("你已预约过该场次。")
         VisitSlot.objects.filter(pk=slot.pk).update(booked_count=F("booked_count") + 1)
         slot.refresh_from_db()
         reservation.slot = slot
@@ -297,6 +363,15 @@ def admin_reservations(request):
     if slot_id:
         qs = qs.filter(slot_id=slot_id)
     return ok([reservation_payload(row) for row in qs])
+
+
+@api_view(["GET"])
+def admin_volunteers(request):
+    _, error = require_role(request, Profile.ROLE_ADMIN)
+    if error:
+        return error
+    rows = User.objects.select_related("profile").filter(profile__role=Profile.ROLE_VOLUNTEER).order_by("username")
+    return ok([volunteer_payload(user) for user in rows])
 
 
 @api_view(["GET"])
@@ -377,18 +452,35 @@ def exhibition_from_request(data, instance=None):
 
 
 def collection_from_request(data, instance=None):
+    exhibition_id = data.get("exhibition_id") if "exhibition_id" in data else getattr(instance, "exhibition_id", None)
+    if exhibition_id is None:
+        return None, "必须选择所属展览。"
+
     item = instance or CollectionItem()
-    item.exhibition_id = data.get("exhibition_id", getattr(item, "exhibition_id", None))
+    item.exhibition_id = exhibition_id
     for field in ["name", "category", "dynasty", "description", "image_url"]:
         if field in data:
             setattr(item, field, data[field])
     item.save()
-    return item
+    return item, None
 
 
 def activity_from_request(data, instance=None):
     item = instance or MuseumActivity()
-    for field in ["title", "description", "activity_time", "location", "capacity", "status", "cover_image_url"]:
+    for field in [
+        "title",
+        "description",
+        "activity_time",
+        "location",
+        "category",
+        "target_audience",
+        "materials",
+        "preparation_note",
+        "duration_minutes",
+        "capacity",
+        "status",
+        "cover_image_url",
+    ]:
         if field in data:
             value = data[field]
             if field == "activity_time" and isinstance(value, str):
@@ -396,6 +488,8 @@ def activity_from_request(data, instance=None):
                 if parsed and timezone.is_naive(parsed):
                     parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
                 value = parsed or value
+            if field in {"capacity", "duration_minutes"} and value not in (None, ""):
+                value = int(value)
             setattr(item, field, value)
     item.save()
     if "volunteer_ids" in data:
@@ -449,7 +543,10 @@ def admin_collections(request):
     if request.method == "GET":
         rows = CollectionItem.objects.select_related("exhibition").all()
         return ok([collection_payload(row) for row in rows])
-    return ok(collection_payload(collection_from_request(request.data)), 201)
+    item, validation_error = collection_from_request(request.data)
+    if validation_error:
+        return fail(validation_error)
+    return ok(collection_payload(item), 201)
 
 
 @api_view(["PUT", "DELETE"])
@@ -461,7 +558,10 @@ def admin_collection_detail(request, pk):
     if request.method == "DELETE":
         item.delete()
         return ok({"message": "藏品已删除。"})
-    return ok(collection_payload(collection_from_request(request.data, item)))
+    item, validation_error = collection_from_request(request.data, item)
+    if validation_error:
+        return fail(validation_error)
+    return ok(collection_payload(item))
 
 
 @api_view(["GET", "POST"])

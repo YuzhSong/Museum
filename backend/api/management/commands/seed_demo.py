@@ -1,4 +1,6 @@
-from datetime import timedelta
+import json
+from datetime import datetime, timedelta
+from pathlib import Path
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
@@ -15,196 +17,34 @@ from api.models import (
 )
 
 
+DATA_PATH = Path(__file__).resolve().parents[2] / "data" / "official_content.json"
+
+
 class Command(BaseCommand):
-    help = "Create demo accounts and museum data for the course MVP."
+    help = "Create demo accounts and official museum-based content for the course MVP."
 
     def handle(self, *args, **options):
+        if not DATA_PATH.exists():
+            raise FileNotFoundError(f"Missing scraped content file: {DATA_PATH}")
+
+        payload = json.loads(DATA_PATH.read_text())
+
         admin = self.create_user("admin", "admin123", "admin@example.com", "13800000001", Profile.ROLE_ADMIN, "系统管理员")
-        visitor = self.create_user("visitor", "visitor123", "visitor@example.com", "13800000002", Profile.ROLE_VISITOR, "游客示例")
+        self.create_user("visitor", "visitor123", "visitor@example.com", "13800000002", Profile.ROLE_VISITOR, "游客示例")
         volunteer = self.create_user("volunteer", "volunteer123", "volunteer@example.com", "13800000003", Profile.ROLE_VOLUNTEER, "讲解员示例")
-        volunteer.profile.service_area = "二层专题展厅"
+        volunteer.profile.service_area = "专题展厅与社教活动"
         volunteer.profile.save()
 
-        Exhibition.objects.filter(title__in=["大国匠作：中国工艺美术精品展", "丝路纹样与非遗新生"]).delete()
-        MuseumActivity.objects.filter(title__in=["周末公益讲解：走近传统工艺", "亲子手作体验：纹样拓印"]).delete()
-        GuideInfo.objects.filter(hall_name__in=["一层精品展厅", "二层专题展厅"]).delete()
+        exhibitions = self.seed_exhibitions(payload["exhibitions"])
+        self.seed_collections(payload["collections"], exhibitions)
+        self.seed_slots()
+        activities = self.seed_activities(payload["activities"])
+        self.seed_guides(exhibitions)
 
-        ex1, _ = Exhibition.objects.update_or_create(
-            title="岩骨正气 和合致远 ——“三茶”统筹的南平实践",
-            defaults={
-                "description": "参考馆方专题展信息设置，围绕南平地区茶文化、生态实践与工艺表达，呈现传统技艺和地方文化之间的互文关系。",
-                "start_date": timezone.datetime(2026, 5, 21).date(),
-                "end_date": timezone.datetime(2026, 7, 21).date(),
-                "location": "四层 3、4 展厅",
-                "status": Exhibition.STATUS_PUBLISHED,
-                "cover_image_url": "https://www.gmfyg.org.cn/Attachments/Image/20260525/5d0ba517-f235-4f0c-9a6c-f1bc885648d6.PNG",
-            },
-        )
-        ex2, _ = Exhibition.objects.update_or_create(
-            title="高原丝路 瞿昙之光——青海丝路文物与瞿昙寺壁画艺术展",
-            defaults={
-                "description": "参考馆方专题展信息设置，以青海丝路文物和瞿昙寺壁画艺术为线索，展示高原丝路上的文化交流与图像传统。",
-                "start_date": timezone.datetime(2026, 4, 21).date(),
-                "end_date": timezone.datetime(2026, 8, 31).date(),
-                "location": "一层 1、2 展厅",
-                "status": Exhibition.STATUS_PUBLISHED,
-                "cover_image_url": "https://www.gmfyg.org.cn/Attachments/Image/20260424/54f85452-bd5b-43d8-aded-80404478487f.jpeg",
-            },
-        )
-        ex3, _ = Exhibition.objects.update_or_create(
-            title="文脉华滋——中国工艺美术基本陈列",
-            defaults={
-                "description": "参考馆方基本陈列和专题页面设置，聚焦玉雕、陶瓷、金属、竹木雕、民族民间工艺等门类，呈现工艺美术的材料、技法与审美脉络。",
-                "start_date": timezone.datetime(2026, 1, 1).date(),
-                "end_date": timezone.datetime(2026, 12, 31).date(),
-                "location": "二层、三层常设展厅",
-                "status": Exhibition.STATUS_PUBLISHED,
-                "cover_image_url": "https://www.gmfyg.org.cn/display/wenmaihuazi/pic/head.jpg",
-            },
-        )
+        for activity in activities:
+            ActivityVolunteer.objects.get_or_create(activity=activity, volunteer=volunteer)
 
-        CollectionItem.objects.update_or_create(
-            exhibition=ex1,
-            name="密玉雕刻 敦煌之声·伎乐天",
-            defaults={
-                "category": "玉雕",
-                "dynasty": "当代",
-                "description": "以敦煌伎乐天形象为灵感，适合展示玉石材料、圆雕技法和音乐舞姿的视觉转译。",
-                "image_url": "https://file.gmfyg.org.cn/collection/WaterMarks/%E5%9B%BE%E7%89%87/2001-2376/2334.jpg",
-            },
-        )
-        CollectionItem.objects.update_or_create(
-            exhibition=ex1,
-            name="玉雕 三希堂传世宝玺",
-            defaults={
-                "category": "玉雕",
-                "dynasty": "当代",
-                "description": "以宝玺形制和传统纹样为核心，体现玉雕在礼制意象、文字篆刻和器物造型上的综合表现。",
-                "image_url": "https://file.gmfyg.org.cn/collection/WaterMarks/%E5%9B%BE%E7%89%87/2001-2376/2198.jpg",
-            },
-        )
-        CollectionItem.objects.update_or_create(
-            exhibition=ex2,
-            name="玛瑙 石窟印象",
-            defaults={
-                "category": "玉石雕刻",
-                "dynasty": "当代",
-                "description": "借石窟造像和天然玛瑙色理营造层次，呼应丝路题材中的宗教艺术与石窟图像。",
-                "image_url": "https://file.gmfyg.org.cn/collection/WaterMarks/%E5%9B%BE%E7%89%87/2001-2376/2196.jpg",
-            },
-        )
-        CollectionItem.objects.update_or_create(
-            exhibition=ex2,
-            name="水晶 金刚橛",
-            defaults={
-                "category": "水晶雕刻",
-                "dynasty": "当代",
-                "description": "以清透水晶表现宗教法器形制，可用于导览中说明工艺、信仰图像与材料质感的关系。",
-                "image_url": "https://file.gmfyg.org.cn/collection/WaterMarks/%E5%9B%BE%E7%89%87/2001-2376/2195.jpg",
-            },
-        )
-        for name, category, image, description in [
-            ("昌江玉雕 山海黎乡", "玉雕", "https://file.gmfyg.org.cn/collection/WaterMarks/%E5%9B%BE%E7%89%87/2001-2376/2194.jpg", "以地域文化为题材，适合展示民间生活、地方记忆与玉雕语言的结合。"),
-            ("墨玉微雕 春江花月夜", "玉雕", "https://file.gmfyg.org.cn/collection/WaterMarks/%E5%9B%BE%E7%89%87/2001-2376/2192.jpg", "微雕题材细密，适合强调工艺美术中尺度、耐心和文字图像互构的特点。"),
-            ("黄龙玉 花仙子", "玉雕", "https://file.gmfyg.org.cn/collection/WaterMarks/%E5%9B%BE%E7%89%87/2001-2376/2190.jpg", "以花卉与人物意象结合，展现当代玉雕对自然题材的温润表达。"),
-            ("水晶 太子佛", "水晶雕刻", "https://file.gmfyg.org.cn/collection/WaterMarks/%E5%9B%BE%E7%89%87/2001-2376/2188.jpg", "通过透明材料处理佛像体量和光感，可作为展品文字导览的重点案例。"),
-            ("阿拉善玉 文明的碎片", "玉石雕刻", "https://file.gmfyg.org.cn/collection/WaterMarks/%E5%9B%BE%E7%89%87/2001-2376/2187.jpg", "作品题名带有历史想象，适合展示现代工艺美术中的叙事性。"),
-        ]:
-            CollectionItem.objects.update_or_create(
-                exhibition=ex3,
-                name=name,
-                defaults={
-                    "category": category,
-                    "dynasty": "当代",
-                    "description": description,
-                    "image_url": image,
-                },
-            )
-
-        for day in range(1, 6):
-            for time_slot in ["09:30-11:30", "13:30-15:30", "15:30-17:00"]:
-                VisitSlot.objects.update_or_create(
-                    visit_date=timezone.localdate() + timedelta(days=day),
-                    time_slot=time_slot,
-                    defaults={"capacity": 30, "status": VisitSlot.STATUS_OPEN},
-                )
-
-        activity, _ = MuseumActivity.objects.update_or_create(
-            title="公益讲解 | 展厅公益讲解场次安排",
-            defaults={
-                "description": "参考馆方志愿者活动栏目设置，由志愿讲解员带领观众了解展厅主题、重点藏品和参观动线。",
-                "activity_time": timezone.now() + timedelta(days=6, hours=2),
-                "location": "一层服务台集合",
-                "capacity": 24,
-                "status": MuseumActivity.STATUS_PUBLISHED,
-                "cover_image_url": "https://www.gmfyg.org.cn/Attachments/Image/20260521/872f6d81-fb78-48a2-bc68-8a25f1372d82.jpeg",
-            },
-        )
-        ActivityVolunteer.objects.get_or_create(activity=activity, volunteer=volunteer)
-
-        MuseumActivity.objects.update_or_create(
-            title="社教 | 非遗手工艺体验中心体验课",
-            defaults={
-                "description": "参考馆方活动栏目中的非遗体验项目，设置竹编、传统制香、泥塑、剪纸、灯彩等体验方向。",
-                "activity_time": timezone.now() + timedelta(days=12, hours=2),
-                "location": "活动中心",
-                "capacity": 18,
-                "status": MuseumActivity.STATUS_PUBLISHED,
-                "cover_image_url": "https://www.gmfyg.org.cn/Attachments/Image/20241010/4197978c-e44a-42fa-8509-7de47df824d4.jpeg",
-            },
-        )
-        MuseumActivity.objects.update_or_create(
-            title="社教活动 | 大型原创情景舞剧《大明瞿昙》片段展演",
-            defaults={
-                "description": "参考馆方社教活动栏目设置，围绕瞿昙寺壁画艺术与舞台表达，设计展演与导赏结合的活动。",
-                "activity_time": timezone.now() + timedelta(days=18, hours=3),
-                "location": "多功能厅",
-                "capacity": 60,
-                "status": MuseumActivity.STATUS_PUBLISHED,
-                "cover_image_url": "https://www.gmfyg.org.cn/Attachments/Image/20260421/b6666b7e-3c8d-4186-acdd-9568ee32c757.jpeg",
-            },
-        )
-        MuseumActivity.objects.update_or_create(
-            title="研学 | 应时循节学非遗：二十四节气研学",
-            defaults={
-                "description": "参考馆方研学栏目设置，将节气知识、非遗技艺和展厅观察结合，面向亲子观众开展课堂式体验。",
-                "activity_time": timezone.now() + timedelta(days=24, hours=2),
-                "location": "教育活动室",
-                "capacity": 20,
-                "status": MuseumActivity.STATUS_PUBLISHED,
-                "cover_image_url": "https://www.gmfyg.org.cn/Attachments/Image/20260508/ba76b591-8b7b-49e4-9431-5d6e47c378ef.jpeg",
-            },
-        )
-
-        GuideInfo.objects.update_or_create(
-            hall_name="四层 3、4 展厅",
-            defaults={
-                "exhibition": ex1,
-                "route_description": "一层服务台 -> 乘梯至四层 -> 茶文化主题区 -> 地方工艺展示区 -> 观众互动区。",
-                "text_guide": "建议结合展览标题中的“三茶”线索观察展项：从茶产业、茶文化到茶科技，理解地方实践如何进入展览叙事。",
-                "map_image_url": "https://www.gmfyg.org.cn/Attachments/TmpFile/20240628/46e501e6-d7cd-40bb-9f5a-a8752e8bab27.jpg",
-            },
-        )
-        GuideInfo.objects.update_or_create(
-            hall_name="一层 1、2 展厅",
-            defaults={
-                "exhibition": ex2,
-                "route_description": "入口序厅 -> 青海丝路文物单元 -> 瞿昙寺壁画艺术单元 -> 文创与教育活动区。",
-                "text_guide": "建议先看展览时间轴，再观察壁画图像中的人物、建筑、纹样和色彩如何呈现丝路交流。",
-                "map_image_url": "https://www.gmfyg.org.cn/Attachments/TmpFile/20240621/2596c806-c857-409c-bdc6-0de06b7939e5.jpg",
-            },
-        )
-        GuideInfo.objects.update_or_create(
-            hall_name="二层、三层常设展厅",
-            defaults={
-                "exhibition": ex3,
-                "route_description": "二层玉雕与金属工艺 -> 三层陶瓷、竹木雕和民族民间工艺 -> 文创出口。",
-                "text_guide": "按照材料门类参观，比较玉石、陶瓷、金属、竹木等材料在造型、纹样和工艺流程上的差异。",
-                "map_image_url": "https://www.gmfyg.org.cn/Attachments/TmpFile/20240628/8df75eb9-e1ea-4511-8184-95b0f16fc5d3.png",
-            },
-        )
-
-        self.stdout.write(self.style.SUCCESS("Demo data ready."))
+        self.stdout.write(self.style.SUCCESS("Demo data ready from official museum content."))
         self.stdout.write("Accounts: admin/admin123, visitor/visitor123, volunteer/volunteer123")
 
     def create_user(self, username, password, email, phone, role, real_name):
@@ -221,3 +61,312 @@ class Command(BaseCommand):
         profile.real_name = real_name
         profile.save()
         return user
+
+    def parse_date_range(self, text):
+        parts = [part.strip() for part in text.split("-") if part.strip()]
+        if len(parts) >= 2:
+            start_text = parts[0]
+            end_text = parts[-1]
+        else:
+            start_text = text.strip()
+            end_text = text.strip()
+
+        try:
+            start_date = datetime.strptime(start_text, "%Y.%m.%d").date()
+        except ValueError:
+            start_date = timezone.localdate()
+        try:
+            end_date = datetime.strptime(end_text, "%Y.%m.%d").date()
+        except ValueError:
+            end_date = start_date + timedelta(days=120)
+        return start_date, end_date
+
+    def clean_summary(self, text, limit=900):
+        text = " ".join((text or "").split())
+        return text[:limit].rstrip()
+
+    def seed_exhibitions(self, rows):
+        created = []
+        for row in rows:
+            title = row["title"].strip()
+            if not title or title == "404 Not Found":
+                continue
+            start_date, end_date = self.parse_date_range(row.get("date_range", ""))
+            item, _ = Exhibition.objects.update_or_create(
+                title=title,
+                defaults={
+                    "description": self.clean_summary(row.get("summary", "")),
+                    "start_date": start_date,
+                    "end_date": end_date,
+                    "location": row.get("location", "中国工艺美术馆"),
+                    "status": Exhibition.STATUS_PUBLISHED,
+                    "cover_image_url": row.get("image_local", ""),
+                },
+            )
+            created.append(item)
+        return created
+
+    def seed_collections(self, rows, exhibitions):
+        if not exhibitions:
+            return
+        targets = exhibitions[:3] if len(exhibitions) >= 3 else exhibitions
+        for index, row in enumerate(rows):
+            exhibition = targets[index % len(targets)]
+            CollectionItem.objects.update_or_create(
+                exhibition=exhibition,
+                name=row["title"].strip(),
+                defaults={
+                    "category": row.get("category_name", "馆藏"),
+                    "dynasty": "馆藏陈列",
+                    "description": self.clean_summary(row.get("summary", ""), 220) or "馆藏信息暂不可用。",
+                    "image_url": row.get("image_local", ""),
+                },
+            )
+
+    def seed_slots(self):
+        for day in range(1, 8):
+            for time_slot in ["09:00-11:00", "11:00-13:00", "14:00-16:00", "16:00-17:00"]:
+                VisitSlot.objects.update_or_create(
+                    visit_date=timezone.localdate() + timedelta(days=day),
+                    time_slot=time_slot,
+                    defaults={"capacity": 60, "status": VisitSlot.STATUS_OPEN},
+                )
+
+    def seed_activities(self, rows):
+        created = []
+        base_time = timezone.now() + timedelta(days=3)
+        workshop_rows = [
+            {
+                "title": "扎染手作体验课",
+                "description": "围绕传统扎染工艺开展亲子手作体验，了解扎结、染色与纹样变化，完成可带走的小幅扎染作品。",
+                "location": "非遗手工艺体验中心",
+                "category": "亲子手作",
+                "target_audience": "6 岁以上儿童与家长",
+                "materials": "棉布方巾、植物染料、皮筋、手套、围裙、清洗盆",
+                "preparation_note": "志愿者需提前 30 分钟分装染料与防护用品，管理员需确认耗材与清洁安排。",
+                "duration_minutes": 90,
+                "capacity": 18,
+            },
+            {
+                "title": "福灯制作工坊",
+                "description": "结合传统节令文化完成纸艺灯笼制作，适合儿童与家庭共同参与。",
+                "location": "非遗手工艺体验中心",
+                "category": "节庆手作",
+                "target_audience": "亲子家庭",
+                "materials": "灯笼骨架、彩纸、流苏、胶水、剪刀、毛笔",
+                "preparation_note": "志愿者负责桌面分组和儿童安全提示，管理员需准备备用灯笼骨架。",
+                "duration_minutes": 75,
+                "capacity": 20,
+            },
+            {
+                "title": "景泰蓝掐丝体验",
+                "description": "以景泰蓝基础工艺为引导，体验掐丝、填彩与纹样设计。",
+                "location": "非遗手工艺体验中心",
+                "category": "工艺体验",
+                "target_audience": "10 岁以上青少年与成人",
+                "materials": "铜胎底板、掐丝铜线、彩砂、点胶工具、镊子",
+                "preparation_note": "志愿者需示范掐丝步骤，管理员需按报名人数配齐安全工具。",
+                "duration_minutes": 120,
+                "capacity": 16,
+            },
+            {
+                "title": "竹编扇小课堂",
+                "description": "体验竹编基础穿插与扇面装饰，感受传统编织工艺的秩序感与手感。",
+                "location": "非遗手工艺体验中心",
+                "category": "编织体验",
+                "target_audience": "8 岁以上观众",
+                "materials": "竹篾、扇柄、棉线、压条、剪刀",
+                "preparation_note": "志愿者需提前修整竹篾边缘，管理员需准备防割手套。",
+                "duration_minutes": 90,
+                "capacity": 18,
+            },
+            {
+                "title": "制香体验课",
+                "description": "了解传统香文化与制香流程，亲手完成香牌或香丸制作。",
+                "location": "非遗手工艺体验中心",
+                "category": "传统生活美学",
+                "target_audience": "青少年与成人",
+                "materials": "香粉、模具、压片器、香盒、手套",
+                "preparation_note": "志愿者需维护制作台秩序，管理员需提前核对香材存量。",
+                "duration_minutes": 80,
+                "capacity": 16,
+            },
+            {
+                "title": "玉雕纹样体验",
+                "description": "围绕玉雕常见纹样进行描摹、刻画与审美讲解，适合展览延伸教学。",
+                "location": "非遗手工艺体验中心",
+                "category": "展览延伸",
+                "target_audience": "9 岁以上观众",
+                "materials": "纹样稿、描图纸、刻画笔、亚克力练习板",
+                "preparation_note": "志愿者需协助低龄观众完成描摹，管理员需打印足量纹样稿。",
+                "duration_minutes": 70,
+                "capacity": 20,
+            },
+            {
+                "title": "点翠首饰体验",
+                "description": "从传统点翠工艺纹样出发，完成安全替代材料的胸针或挂饰制作。",
+                "location": "非遗手工艺体验中心",
+                "category": "首饰手作",
+                "target_audience": "青少年与成人",
+                "materials": "金属底托、替代羽片材料、珠饰、镊子、胶水",
+                "preparation_note": "志愿者需提醒精细操作节奏，管理员需准备备用镊子与收纳盒。",
+                "duration_minutes": 100,
+                "capacity": 14,
+            },
+            {
+                "title": "泥塑瑞兽工坊",
+                "description": "以传统瑞兽造型为主题开展泥塑创作，适合儿童和家庭参与。",
+                "location": "非遗手工艺体验中心",
+                "category": "亲子手作",
+                "target_audience": "5 岁以上儿童与家长",
+                "materials": "超轻黏土、塑形刀、压板、展示底座",
+                "preparation_note": "志愿者需看护儿童工具使用，管理员需预留作品晾置区域。",
+                "duration_minutes": 75,
+                "capacity": 24,
+            },
+            {
+                "title": "敦煌石粉彩绘体验",
+                "description": "结合敦煌壁画色彩与图案，体验石粉彩绘的上色与层次控制。",
+                "location": "非遗手工艺体验中心",
+                "category": "绘画体验",
+                "target_audience": "12 岁以上观众",
+                "materials": "石粉颜料、调色盘、线稿板、毛笔、围裙",
+                "preparation_note": "志愿者负责讲解配色与清洗流程，管理员需准备防污台布。",
+                "duration_minutes": 100,
+                "capacity": 16,
+            },
+            {
+                "title": "龙泉青瓷纹样彩绘",
+                "description": "围绕龙泉青瓷器型与纹样进行釉下彩模拟体验，理解青瓷造型美学。",
+                "location": "非遗手工艺体验中心",
+                "category": "陶瓷体验",
+                "target_audience": "青少年与成人",
+                "materials": "素坯盘、颜料、勾线笔、展示托盘",
+                "preparation_note": "志愿者需指导器型拿取与摆放，管理员需核对素坯破损率。",
+                "duration_minutes": 90,
+                "capacity": 18,
+            },
+            {
+                "title": "漆艺小盒制作",
+                "description": "从漆艺髹饰与装饰语言切入，完成小盒表面纹样创作。",
+                "location": "非遗手工艺体验中心",
+                "category": "漆艺体验",
+                "target_audience": "10 岁以上观众",
+                "materials": "木盒坯、漆艺装饰片、描金笔、保护手套",
+                "preparation_note": "志愿者需提醒材料使用顺序，管理员需准备成品包装袋。",
+                "duration_minutes": 90,
+                "capacity": 16,
+            },
+            {
+                "title": "木版年画印制体验",
+                "description": "通过套色与拓印体验认识传统木版年画的印制流程与年俗寓意。",
+                "location": "非遗手工艺体验中心",
+                "category": "版画体验",
+                "target_audience": "亲子家庭与学生团体",
+                "materials": "版画底板、水性颜料、滚筒、宣纸、晾纸架",
+                "preparation_note": "志愿者需维持印制顺序，管理员需准备充足晾晒空间。",
+                "duration_minutes": 85,
+                "capacity": 22,
+            },
+            {
+                "title": "剪纸窗花课堂",
+                "description": "以节令纹样与吉祥图案为主，体验基础剪纸折叠与纹样构成。",
+                "location": "非遗手工艺体验中心",
+                "category": "节庆手作",
+                "target_audience": "7 岁以上观众",
+                "materials": "彩纸、安全剪刀、图样模板、收纳袋",
+                "preparation_note": "志愿者需重点照看低龄儿童剪刀使用，管理员需准备安全剪刀备用。",
+                "duration_minutes": 60,
+                "capacity": 24,
+            },
+            {
+                "title": "盘扣香囊制作",
+                "description": "围绕传统服饰细节与节庆配饰，体验基础盘扣与香囊拼装。",
+                "location": "非遗手工艺体验中心",
+                "category": "服饰手作",
+                "target_audience": "青少年与成人",
+                "materials": "盘扣绳、香囊包、香料包、针线包",
+                "preparation_note": "志愿者需协助缝线步骤，管理员需准备成品展示样本。",
+                "duration_minutes": 85,
+                "capacity": 18,
+            },
+            {
+                "title": "绒花发饰体验",
+                "description": "了解绒花基础造型方法，完成一件可佩戴的小型发饰作品。",
+                "location": "非遗手工艺体验中心",
+                "category": "首饰手作",
+                "target_audience": "青少年与成人",
+                "materials": "绒条、金属丝、发夹底托、热熔胶、剪刀",
+                "preparation_note": "志愿者需协助细节塑形，管理员需控制热熔工具的安全摆放。",
+                "duration_minutes": 100,
+                "capacity": 14,
+            },
+        ]
+        for index, row in enumerate(rows):
+            item, _ = MuseumActivity.objects.update_or_create(
+                title=row["title"].strip(),
+                defaults={
+                    "description": self.clean_summary(row.get("summary", ""), 900),
+                    "activity_time": base_time + timedelta(days=index * 5),
+                    "location": "中国工艺美术馆公共活动区",
+                    "category": "展演活动",
+                    "target_audience": "公众观众",
+                    "materials": "现场观演，无需自备材料。",
+                    "preparation_note": "志愿者负责现场引导与秩序维护，管理员提前确认座椅与音响。",
+                    "duration_minutes": 90,
+                    "capacity": 40 if index == 0 else 24,
+                    "status": MuseumActivity.STATUS_PUBLISHED,
+                    "cover_image_url": row.get("image_local", ""),
+                },
+            )
+            created.append(item)
+        workshop_image = rows[0].get("image_local", "") if rows else ""
+        for index, row in enumerate(workshop_rows, start=len(created)):
+            item, _ = MuseumActivity.objects.update_or_create(
+                title=row["title"],
+                defaults={
+                    "description": row["description"],
+                    "activity_time": base_time + timedelta(days=index * 2),
+                    "location": row["location"],
+                    "category": row["category"],
+                    "target_audience": row["target_audience"],
+                    "materials": row["materials"],
+                    "preparation_note": row["preparation_note"],
+                    "duration_minutes": row["duration_minutes"],
+                    "capacity": row["capacity"],
+                    "status": MuseumActivity.STATUS_PUBLISHED,
+                    "cover_image_url": workshop_image,
+                },
+            )
+            created.append(item)
+        return created
+
+    def seed_guides(self, exhibitions):
+        guide_templates = [
+            (
+                "一层主展区",
+                "从序厅进入后，先沿主展墙浏览展览背景，再进入重点展柜与图像单元，最后回到公共休息区。",
+                "建议先快速把握展览主题，再挑选 3 至 5 件重点作品停留观看。展签、图像和空间动线是理解展览叙事的最佳入口。",
+            ),
+            (
+                "四层专题展区",
+                "电梯抵达后从左侧专题展入口进入，顺时针完成主题内容、代表作品和多媒体展示区的参观。",
+                "如果是第一次参观，可优先关注展览标题、时间线、代表作品和出口前的总结性内容，理解会更完整。",
+            ),
+            (
+                "常设陈列区",
+                "建议按材料门类依次观看：玉雕、陶瓷、金属工艺、织绣与漆艺，再进入延展陈列区。",
+                "常设陈列更适合慢看。可从材料、工艺、纹样和用途四个角度观察，能更容易比较不同门类之间的审美差异。",
+            ),
+        ]
+
+        for exhibition, template in zip(exhibitions[:3], guide_templates):
+            GuideInfo.objects.update_or_create(
+                hall_name=template[0],
+                defaults={
+                    "exhibition": exhibition,
+                    "route_description": template[1],
+                    "text_guide": template[2],
+                    "map_image_url": exhibition.cover_image_url,
+                },
+            )

@@ -1,8 +1,13 @@
+from datetime import timedelta
 import secrets
 
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+
+
+def default_auth_token_expires_at():
+    return timezone.now() + timedelta(days=7)
 
 
 class Profile(models.Model):
@@ -31,6 +36,7 @@ class AuthToken(models.Model):
     key = models.CharField(max_length=64, unique=True, default=secrets.token_hex)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="api_tokens")
     created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(default=default_auth_token_expires_at)
 
 
 class Exhibition(models.Model):
@@ -112,6 +118,9 @@ class Reservation(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ("user", "slot")
+
     def can_cancel(self):
         return self.status == self.STATUS_ACTIVE and self.slot.visit_date >= timezone.localdate()
 
@@ -130,6 +139,11 @@ class MuseumActivity(models.Model):
     description = models.TextField()
     activity_time = models.DateTimeField()
     location = models.CharField(max_length=120)
+    category = models.CharField(max_length=80, blank=True)
+    target_audience = models.CharField(max_length=120, blank=True)
+    materials = models.TextField(blank=True)
+    preparation_note = models.TextField(blank=True)
+    duration_minutes = models.PositiveIntegerField(default=90)
     capacity = models.PositiveIntegerField(default=30)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PUBLISHED)
     cover_image_url = models.URLField(blank=True)

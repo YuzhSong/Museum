@@ -22,8 +22,8 @@ GitHub 仓库：[YuzhSong/Museum](https://github.com/YuzhSong/Museum)
 
 ## 技术栈
 
-- 后端：Python 3.14、Django 6、Django REST Framework、SQLite
-- 前端：Vue 3 CDN 单页应用、原生 CSS、Fetch API
+- 后端：Python 3.9+、Django 4.2 LTS、Django REST Framework、SQLite
+- 前端：Vue 3 CDN 单页应用、原生 CSS、Fetch API、`npm run dev` 静态服务
 - 文档：README.md、编码实现报告.pdf
 
 ## 目录结构
@@ -33,10 +33,11 @@ Museum/
   backend/                 Django 后端项目
     api/                   业务模型、接口、初始化数据命令
     museum_backend/        Django 配置
+    requirements.txt       后端依赖清单
     manage.py
   frontend/
     index.html             Vue 单页前端
-    package.json           静态服务脚本
+    package.json           前端本地静态服务脚本
   docs/
     coding_implementation_report.md
   编码实现报告.pdf
@@ -45,40 +46,56 @@ Museum/
 
 ## 环境配置
 
-建议在项目根目录 `D:\Code\Museum` 执行以下命令。
+以下命令以 macOS / Linux 为准，项目根目录为：
 
-```powershell
-python -m pip install Django djangorestframework django-cors-headers reportlab
-cd backend
-python manage.py migrate
-python manage.py seed_demo
+```bash
+/Users/rainy/Code/Museum/Museum
 ```
 
-如果从其他电脑首次拉取项目：
+首次拉取后，建议先创建虚拟环境并安装后端依赖：
 
-```powershell
+```bash
 git clone https://github.com/YuzhSong/Museum.git
 cd Museum
-python -m pip install Django djangorestframework django-cors-headers reportlab
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r backend/requirements.txt
 cd backend
 python manage.py migrate
 python manage.py seed_demo
 ```
+
+Windows PowerShell 激活虚拟环境命令：
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+前端当前不需要额外执行 `npm install`。`frontend/package.json` 只是封装了一个本地静态服务命令，实际页面依赖 Vue 3 CDN 运行。
 
 ## 启动方式
 
 启动后端：
 
-```powershell
-cd D:\Code\Museum\backend
+```bash
+cd /Users/rainy/Code/Museum/Museum
+source .venv/bin/activate
+cd backend
 python manage.py runserver 127.0.0.1:8000
+```
+
+可先访问健康检查接口确认后端已启动：
+
+```text
+http://127.0.0.1:8000/api/health/
 ```
 
 启动前端：
 
-```powershell
-cd D:\Code\Museum\frontend
-python -m http.server 5173
+```bash
+cd /Users/rainy/Code/Museum/Museum/frontend
+npm run dev
 ```
 
 浏览器访问：
@@ -130,14 +147,16 @@ Authorization: Bearer <token>
 
 后端包含 3 个核心接口测试，覆盖游客预约/取消、管理员查看预约数据、志愿者查看报名名单。
 
-```powershell
-cd D:\Code\Museum\backend
+```bash
+cd /Users/rainy/Code/Museum/Museum
+source .venv/bin/activate
+cd backend
 python manage.py test api
 ```
 
 也可以执行 Django 系统检查：
 
-```powershell
+```bash
 python manage.py check
 ```
 
@@ -145,15 +164,15 @@ python manage.py check
 
 当前建议主开发分支为 `codex/museum-mvp`。首次关联远程仓库：
 
-```powershell
-cd D:\Code\Museum
+```bash
+cd /Users/rainy/Code/Museum/Museum
 git remote add origin https://github.com/YuzhSong/Museum.git
 git push -u origin codex/museum-mvp
 ```
 
 日常提交与同步：
 
-```powershell
+```bash
 git status
 git add .
 git commit -m "Update museum platform"

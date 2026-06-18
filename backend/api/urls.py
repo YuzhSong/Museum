@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path("api/health/", views.health),
     path("api/register/", views.register),
     path("api/login/", views.login),
     path("api/logout/", views.logout),
@@ -15,6 +16,7 @@ urlpatterns = [
     path("api/reservations/", views.reservations),
     path("api/reservations/<int:pk>/cancel/", views.cancel_reservation),
     path("api/admin/reservations/", views.admin_reservations),
+    path("api/admin/volunteers/", views.admin_volunteers),
     path("api/activities/", views.activity_list),
     path("api/activities/<int:pk>/", views.activity_detail),
     path("api/activities/<int:pk>/register/", views.register_activity),
