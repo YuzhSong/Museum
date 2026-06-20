@@ -20,6 +20,7 @@ from .models import (
     MuseumActivity,
     Profile,
     Reservation,
+    VolunteerRoleApplication,
     VisitSlot,
 )
 
@@ -194,6 +195,18 @@ def volunteer_payload(user):
     }
 
 
+def volunteer_role_application_payload(item):
+    return {
+        "id": item.id,
+        "user": user_payload(item.user),
+        "service_area": item.service_area,
+        "motivation": item.motivation,
+        "status": item.status,
+        "applied_at": item.applied_at.isoformat() if item.applied_at else None,
+        "reviewed_at": item.reviewed_at.isoformat() if item.reviewed_at else None,
+    }
+
+
 def validate_register_payload(username, password, phone, email):
     if not username or not password:
         return "用户名和密码不能为空。"
@@ -268,6 +281,40 @@ def profile(request):
     return ok(user_payload(user))
 
 
+@api_view(["GET", "POST"])
+def my_volunteer_role_application(request):
+    user, error = require_user(request)
+    if error:
+        return error
+    if request.method == "GET":
+        item = VolunteerRoleApplication.objects.filter(user=user).first()
+        return ok(volunteer_role_application_payload(item) if item else None)
+    if user.profile.role != Profile.ROLE_VISITOR:
+        return fail("当前角色无需申请成为志愿者。", 400)
+    service_area = (request.data.get("service_area") or "").strip()
+    motivation = (request.data.get("motivation") or "").strip()
+    if not motivation:
+        return fail("请填写申请说明。")
+    item, created = VolunteerRoleApplication.objects.get_or_create(
+        user=user,
+        defaults={
+            "service_area": service_area,
+            "motivation": motivation,
+            "status": VolunteerRoleApplication.STATUS_PENDING,
+        },
+    )
+    if not created:
+        if item.status == VolunteerRoleApplication.STATUS_APPROVED:
+            return fail("你已经是志愿者账号。", 409)
+        item.status = VolunteerRoleApplication.STATUS_PENDING
+        item.service_area = service_area
+        item.motivation = motivation
+        item.applied_at = timezone.now()
+        item.reviewed_at = None
+        item.save(update_fields=["status", "service_area", "motivation", "applied_at", "reviewed_at"])
+    return ok(volunteer_role_application_payload(item), 201 if created else 200)
+
+
 @api_view(["GET"])
 def exhibition_list(request):
     rows = Exhibition.objects.filter(status=Exhibition.STATUS_PUBLISHED).order_by("start_date")
@@ -316,10 +363,26 @@ def reservations(request):
         return fail("请选择参观场次。")
     with transaction.atomic():
         slot = get_object_or_404(VisitSlot.objects.select_for_update(), pk=slot_id)
-        if Reservation.objects.filter(user=user, slot=slot).exists():
+        existing = Reservation.objects.select_for_update().filter(user=user, slot=slot).first()
+        active_same_day = Reservation.objects.select_for_update().filter(
+            user=user,
+            slot__visit_date=slot.visit_date,
+            status=Reservation.STATUS_ACTIVE,
+        )
+        if existing and existing.status == Reservation.STATUS_ACTIVE:
             return fail("你已预约过该场次。")
+        if active_same_day.exists():
+            return fail("同一天只能预约一个时间段，请先取消已预约场次。")
         if not slot.has_quota() or slot.visit_date < timezone.localdate():
             return fail("该时间段名额已满或不可预约。")
+        if existing:
+            existing.status = Reservation.STATUS_ACTIVE
+            existing.created_at = timezone.now()
+            existing.save(update_fields=["status", "created_at"])
+            VisitSlot.objects.filter(pk=slot.pk).update(booked_count=F("booked_count") + 1)
+            slot.refresh_from_db()
+            existing.slot = slot
+            return ok(reservation_payload(existing), 200)
         try:
             reservation = Reservation.objects.create(user=user, slot=slot)
         except IntegrityError:
@@ -375,6 +438,46 @@ def admin_volunteers(request):
         return error
     rows = User.objects.select_related("profile").filter(profile__role=Profile.ROLE_VOLUNTEER).order_by("username")
     return ok([volunteer_payload(user) for user in rows])
+
+
+@api_view(["GET"])
+def admin_volunteer_role_applications(request):
+    _, error = require_role(request, Profile.ROLE_ADMIN)
+    if error:
+        return error
+    rows = VolunteerRoleApplication.objects.select_related("user", "user__profile").filter(
+        status=VolunteerRoleApplication.STATUS_PENDING
+    ).order_by("-applied_at")
+    return ok([volunteer_role_application_payload(row) for row in rows])
+
+
+@api_view(["POST"])
+def admin_approve_volunteer_role_application(request, pk):
+    _, error = require_role(request, Profile.ROLE_ADMIN)
+    if error:
+        return error
+    item = get_object_or_404(VolunteerRoleApplication.objects.select_related("user", "user__profile"), pk=pk)
+    item.status = VolunteerRoleApplication.STATUS_APPROVED
+    item.reviewed_at = timezone.now()
+    item.save(update_fields=["status", "reviewed_at"])
+    profile = item.user.profile
+    profile.role = Profile.ROLE_VOLUNTEER
+    if item.service_area:
+        profile.service_area = item.service_area
+    profile.save(update_fields=["role", "service_area"])
+    return ok({"status": item.status, "user_role": profile.role})
+
+
+@api_view(["POST"])
+def admin_reject_volunteer_role_application(request, pk):
+    _, error = require_role(request, Profile.ROLE_ADMIN)
+    if error:
+        return error
+    item = get_object_or_404(VolunteerRoleApplication, pk=pk)
+    item.status = VolunteerRoleApplication.STATUS_REJECTED
+    item.reviewed_at = timezone.now()
+    item.save(update_fields=["status", "reviewed_at"])
+    return ok({"status": item.status})
 
 
 @api_view(["GET"])

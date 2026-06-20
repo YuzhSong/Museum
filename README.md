@@ -6,11 +6,11 @@ GitHub 仓库：[YuzhSong/Museum](https://github.com/YuzhSong/Museum)
 
 ## 功能范围
 
-- 用户账号：游客注册、登录、退出、角色区分
+- 用户账号：游客注册、登录、退出、角色区分、游客申请成为志愿者
 - 展览与藏品：展览列表、展览详情、关联藏品、藏品详情接口
 - 门票预约：场次查询、创建预约、查看个人预约、取消预约、管理员查看预约数据
 - 活动报名：活动列表、活动报名、个人报名记录
-- 志愿者/讲解员：浏览活动并提交参与申请，查看申请状态，管理已通过活动的报名名单
+- 志愿者/讲解员：游客提交志愿者身份申请、管理员审批身份升级、志愿者浏览活动并提交参与申请、管理已通过活动的报名名单
 - 导览服务：推荐路线、展厅说明、文字导览
 - 后台管理：管理员维护展览、藏品、活动、导览信息
 
@@ -18,7 +18,7 @@ GitHub 仓库：[YuzhSong/Museum](https://github.com/YuzhSong/Museum)
 
 前端视觉与演示数据参考了中国工艺美术馆 中国非物质文化遗产馆官网的公开栏目，包括“服务”“展览”“活动”“典藏”“志愿者”等页面。演示数据中的展览名称、活动类型、志愿者公益讲解、典藏门类和图片素材尽量贴近官网公开信息；本项目仍为课程作业 MVP，不代表官方系统。
 
-图片 URL 使用官网公开页面中的图片地址，便于课堂演示时呈现更贴合馆方内容的视觉效果。若离线演示或图片加载失败，系统仍可展示文字内容。
+活动相关演示图片已从官网公开页面整理并保存为本地静态资源，便于课堂演示时稳定展示更贴合馆方内容的视觉效果。
 
 ## 技术栈
 
@@ -118,12 +118,17 @@ localStorage.setItem("museum_api_base", "http://127.0.0.1:8000/api")
 | 游客 | visitor | visitor123 |
 | 志愿者/讲解员 | volunteer | volunteer123 |
 
+说明：新注册用户默认都是游客账号。如需成为志愿者，需要先在“我的”页面提交志愿者身份申请，由管理员在“申请审批”中审核通过后升级角色。
+
 ## API 说明
 
 主要接口与详细设计报告保持一致：
 
 - `POST /api/register/`
 - `POST /api/login/`
+- `POST /api/logout/`
+- `GET /api/profile/`
+- `GET/POST /api/my/volunteer-role-application/`
 - `GET /api/exhibitions/`
 - `GET /api/exhibitions/{id}/`
 - `GET /api/visit-slots/`
@@ -131,9 +136,16 @@ localStorage.setItem("museum_api_base", "http://127.0.0.1:8000/api")
 - `GET /api/reservations/`
 - `POST /api/reservations/{id}/cancel/`
 - `GET /api/admin/reservations/`
+- `GET /api/admin/volunteers/`
+- `GET /api/admin/volunteer-role-applications/`
+- `POST /api/admin/volunteer-role-applications/{id}/approve/`
+- `POST /api/admin/volunteer-role-applications/{id}/reject/`
 - `GET /api/activities/`
+- `GET /api/activities/{id}/`
 - `POST /api/activities/{id}/register/`
+- `GET /api/my/activity-registrations/`
 - `GET /api/volunteer/activities/`
+- `GET /api/volunteer/activities/{id}/registrations/`
 - `GET /api/volunteer/available-activities/`
 - `POST /api/volunteer/activities/{id}/apply/`
 - `GET /api/volunteer/my-applications/`
@@ -141,6 +153,7 @@ localStorage.setItem("museum_api_base", "http://127.0.0.1:8000/api")
 - `POST /api/admin/applications/{id}/approve/`
 - `POST /api/admin/applications/{id}/reject/`
 - `GET /api/guides/`
+- `GET /api/guides/{id}/`
 - `POST /api/admin/exhibitions/`
 
 登录成功后使用返回的 token：
@@ -151,7 +164,14 @@ Authorization: Bearer <token>
 
 ## 测试
 
-后端包含 3 个核心接口测试，覆盖游客预约/取消、管理员查看预约数据、志愿者查看报名名单。
+后端当前包含 19 个集成测试，覆盖：
+
+- 游客注册、登录、个人资料获取
+- 游客预约/取消预约、重复预约拦截、过期 Token 拦截
+- 管理员预约查询与时间段筛选
+- 展览、藏品、活动、导览公开接口访问
+- 志愿者活动申请审批、报名名单权限隔离
+- 游客提交志愿者身份申请、管理员审批/拒绝、被拒后重新提交
 
 ```bash
 cd /Users/rainy/Code/Museum/Museum
@@ -204,8 +224,8 @@ git pull
 - MVP 阶段未实现真实支付、实名认证、闸机核验、实时地图导航和消息通知。
 - 活动报名暂不支持游客自行取消，符合详细设计报告中的 MVP 约束。
 - 前端使用 Vue CDN，需要首次打开时能够访问 CDN；若离线演示，可下载 Vue 运行时后替换 `frontend/index.html` 中的 CDN 地址。
-- 图片使用官网公开远程图片 URL，网络不可用时仍可展示文字信息，但图片可能无法加载。
+- 游客不能直接注册为志愿者，必须通过管理员审批完成身份升级；当前尚未实现更细粒度的组织/部门分配流程。
 
 ## 初始化数据
 
-`python manage.py seed_demo` 会创建演示账号、展览、藏品、参观场次、活动和导览数据。若需要重新初始化，可删除 `backend/db.sqlite3` 后重新执行迁移和初始化命令。
+`python manage.py seed_demo` 会创建演示账号、展览、藏品、参观场次、活动、导览及部分审批演示数据。若需要重新初始化，可删除 `backend/db.sqlite3` 后重新执行迁移和初始化命令。

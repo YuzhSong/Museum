@@ -210,4 +210,25 @@ class ActivityVolunteer(models.Model):
     class Meta:
         unique_together = ("activity", "volunteer")
 
+
+class VolunteerRoleApplication(models.Model):
+    STATUS_PENDING = "pending"
+    STATUS_APPROVED = "approved"
+    STATUS_REJECTED = "rejected"
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "待审批"),
+        (STATUS_APPROVED, "已通过"),
+        (STATUS_REJECTED, "已拒绝"),
+    ]
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="volunteer_role_application")
+    service_area = models.CharField(max_length=120, blank=True)
+    motivation = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    applied_at = models.DateTimeField(default=timezone.now)
+    reviewed_at = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username}:{self.status}"
+
 # Create your models here.

@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from .models import ActivityVolunteer, AuthToken, CollectionItem, Exhibition, MuseumActivity, Profile, Reservation, VisitSlot
+from .models import ActivityVolunteer, AuthToken, CollectionItem, Exhibition, MuseumActivity, Profile, Reservation, VisitSlot, VolunteerRoleApplication
 
 
 class ApiFlowTests(TestCase):
@@ -71,6 +71,36 @@ class ApiFlowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.slot.refresh_from_db()
         self.assertEqual(self.slot.booked_count, 0)
+
+    def test_visitor_can_reserve_again_after_cancelling(self):
+        client = self.login_client("visitor", "visitor123")
+        first = client.post("/api/reservations/", {"slot_id": self.slot.id}, format="json")
+        self.assertEqual(first.status_code, 201)
+
+        reservation_id = first.json()["id"]
+        cancel = client.post(f"/api/reservations/{reservation_id}/cancel/")
+        self.assertEqual(cancel.status_code, 200)
+
+        second = client.post("/api/reservations/", {"slot_id": self.slot.id}, format="json")
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(second.json()["status"], Reservation.STATUS_ACTIVE)
+        self.assertEqual(second.json()["id"], reservation_id)
+        self.slot.refresh_from_db()
+        self.assertEqual(self.slot.booked_count, 1)
+
+    def test_same_user_cannot_reserve_two_slots_on_same_day(self):
+        client = self.login_client("visitor", "visitor123")
+
+        first = client.post("/api/reservations/", {"slot_id": self.slot.id}, format="json")
+        second = client.post("/api/reservations/", {"slot_id": self.second_slot.id}, format="json")
+
+        self.assertEqual(first.status_code, 201)
+        self.assertEqual(second.status_code, 400)
+        self.assertEqual(second.json()["detail"], "同一天只能预约一个时间段，请先取消已预约场次。")
+        self.assertEqual(
+            Reservation.objects.filter(user=self.visitor, slot__visit_date=self.slot.visit_date, status=Reservation.STATUS_ACTIVE).count(),
+            1,
+        )
 
     def test_admin_can_view_reservations(self):
         visitor_client = self.login_client("visitor", "visitor123")
@@ -295,3 +325,69 @@ class ApiFlowTests(TestCase):
         self.assertEqual(response.json()["category"], "亲子手作")
         self.assertEqual(response.json()["materials"], "棉布、染料、手套")
         self.assertEqual(response.json()["duration_minutes"], 90)
+
+    def test_visitor_can_apply_for_volunteer_role_and_admin_can_approve(self):
+        visitor_client = self.login_client("visitor", "visitor123")
+        response = visitor_client.post(
+            "/api/my/volunteer-role-application/",
+            {"service_area": "社教活动", "motivation": "有讲解经验，希望参与馆内活动服务。"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()["status"], VolunteerRoleApplication.STATUS_PENDING)
+
+        admin_client = self.login_client("admin", "admin123")
+        pending = admin_client.get("/api/admin/volunteer-role-applications/")
+        self.assertEqual(pending.status_code, 200)
+        self.assertEqual(len(pending.json()), 1)
+
+        app_id = pending.json()[0]["id"]
+        approve = admin_client.post(f"/api/admin/volunteer-role-applications/{app_id}/approve/")
+        self.assertEqual(approve.status_code, 200)
+        self.visitor.profile.refresh_from_db()
+        self.assertEqual(self.visitor.profile.role, Profile.ROLE_VOLUNTEER)
+
+    def test_rejected_volunteer_role_application_can_be_resubmitted(self):
+        visitor_client = self.login_client("visitor", "visitor123")
+        first = visitor_client.post(
+            "/api/my/volunteer-role-application/",
+            {"service_area": "展厅讲解", "motivation": "首次申请"},
+            format="json",
+        )
+        self.assertEqual(first.status_code, 201)
+
+        admin_client = self.login_client("admin", "admin123")
+        item = VolunteerRoleApplication.objects.get(user=self.visitor)
+        reject = admin_client.post(f"/api/admin/volunteer-role-applications/{item.id}/reject/")
+        self.assertEqual(reject.status_code, 200)
+
+        second = visitor_client.post(
+            "/api/my/volunteer-role-application/",
+            {"service_area": "展厅讲解", "motivation": "补充了可服务时间，重新申请"},
+            format="json",
+        )
+        self.assertEqual(second.status_code, 200)
+        item.refresh_from_db()
+        self.assertEqual(item.status, VolunteerRoleApplication.STATUS_PENDING)
+        self.assertEqual(item.motivation, "补充了可服务时间，重新申请")
+
+    def test_pending_volunteer_role_application_can_be_updated(self):
+        visitor_client = self.login_client("visitor", "visitor123")
+        first = visitor_client.post(
+            "/api/my/volunteer-role-application/",
+            {"service_area": "社教活动", "motivation": "第一次填写"},
+            format="json",
+        )
+        self.assertEqual(first.status_code, 201)
+
+        second = visitor_client.post(
+            "/api/my/volunteer-role-application/",
+            {"service_area": "展厅讲解", "motivation": "补充讲解经验后更新"},
+            format="json",
+        )
+        self.assertEqual(second.status_code, 200)
+
+        item = VolunteerRoleApplication.objects.get(user=self.visitor)
+        self.assertEqual(item.status, VolunteerRoleApplication.STATUS_PENDING)
+        self.assertEqual(item.service_area, "展厅讲解")
+        self.assertEqual(item.motivation, "补充讲解经验后更新")

@@ -931,6 +931,19 @@
         gap: 14px;
       }
 
+      .volunteer-role-form {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        align-items: start;
+      }
+
+      .volunteer-role-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 14px;
+      }
+
       label {
         display: grid;
         gap: 8px;
@@ -1108,6 +1121,7 @@
         .three-grid,
         .card-grid,
         .form-grid,
+        .volunteer-role-form,
         .stat-block,
         .kpi-grid {
           grid-template-columns: 1fr;
@@ -1324,7 +1338,7 @@
               <article class="activity-card" v-for="item in latestActivities" :key="item.id">
                 <img class="card-image" :src="imageFor(item.cover_image_url)" :alt="item.title" />
                 <div class="card-body">
-                  <div class="meta">{{ formatDateTime(item.activity_time) }} · {{ locationLabel(item.location) }}</div>
+                  <div class="meta">{{ activityMetaLabel(item) }}</div>
                   <h3>{{ activityTitle(item) }}</h3>
                   <p>{{ activitySummary(item) }}</p>
                   <div class="card-actions" style="margin-top: 16px">
@@ -1514,7 +1528,7 @@
               <article class="activity-card" v-for="item in filteredActivities" :key="item.id">
               <img class="card-image" :src="imageFor(item.cover_image_url)" :alt="item.title" />
               <div class="card-body">
-                <div class="meta">{{ formatDateTime(item.activity_time) }} · {{ locationLabel(item.location) }}</div>
+                <div class="meta">{{ activityMetaLabel(item) }}</div>
                 <h3>{{ activityTitle(item) }}</h3>
                 <p>{{ activitySummary(item, true) }}</p>
                 <div class="card-foot">
@@ -1539,7 +1553,7 @@
             <div class="detail-image" :style="{ backgroundImage: `url('${imageFor(selectedActivity.cover_image_url)}')` }"></div>
             <div class="detail-copy">
               <div class="badge-row">
-                <span class="badge">{{ formatDateTime(selectedActivity.activity_time) }}</span>
+                <span class="badge" v-if="activityScheduleLabel(selectedActivity)">{{ activityScheduleLabel(selectedActivity) }}</span>
                 <span class="badge">{{ locationLabel(selectedActivity.location) }}</span>
                 <span class="badge" v-if="selectedActivity.category">{{ activityCategoryLabel(selectedActivity.category) }}</span>
                 <span class="badge">剩余 {{ selectedActivity.available_count }}</span>
@@ -1641,7 +1655,7 @@
                   <strong>{{ slot.visit_date }} {{ slot.time_slot }}</strong>
                   <div class="list-meta">总名额 {{ slot.capacity }} · 已预约 {{ slot.booked_count }} · 剩余 {{ slot.available_count }}</div>
                   <div class="card-actions" style="margin-top: 14px">
-                    <button class="pill-btn" :disabled="!isLoggedIn || slot.available_count <= 0" @click="reserve(slot.id)">提交预约</button>
+                    <button class="pill-btn" :disabled="!canReserveSlot(slot)" @click="reserve(slot.id)">{{ reservationButtonLabel(slot) }}</button>
                     <button class="ghost-btn" v-if="!isLoggedIn" @click="openAuth('login')">登录后预约</button>
                   </div>
                 </div>
@@ -1744,6 +1758,25 @@
                 <div class="stat-card"><strong>{{ profile.phone || '未填写' }}</strong><span>手机号</span></div>
                 <div class="stat-card"><strong>{{ profile.email || '未填写' }}</strong><span>邮箱</span></div>
               </div>
+              <div class="detail-inline" v-if="isVisitor" style="margin-top: 18px">
+                <h3 style="margin: 0 0 10px">申请成为志愿者</h3>
+                <p class="muted" v-if="!volunteerRoleApplication">提交申请后，管理员审核通过即可升级为志愿者账号并进入工作台。</p>
+                <p class="muted" v-else-if="volunteerRoleApplication.status === 'pending'">当前申请正在审批中；如需补充说明，可直接修改下方内容并重新提交。</p>
+                <p class="muted" v-else-if="volunteerRoleApplication.status === 'rejected'">当前申请未通过，请补充信息后重新提交。</p>
+                <div v-if="volunteerRoleApplication" class="record" style="margin-top: 12px; padding: 16px">
+                  <strong>当前申请状态：{{ applicationStatusLabel(volunteerRoleApplication.status) }}</strong>
+                  <div class="list-meta" style="margin-top: 8px">服务方向：{{ volunteerRoleApplication.service_area || '未填写' }}</div>
+                  <div class="list-meta" style="margin-top: 8px">申请时间：{{ formatDateTime(volunteerRoleApplication.applied_at) }}</div>
+                  <p style="margin-top: 10px">{{ volunteerRoleApplication.motivation || '未填写申请说明。' }}</p>
+                </div>
+                <div class="volunteer-role-form" style="margin-top: 16px">
+                  <label>意向服务方向<input v-model.trim="volunteerRoleForm.service_area" placeholder="如：社教活动、展厅讲解" /></label>
+                  <label>申请说明<textarea v-model.trim="volunteerRoleForm.motivation" placeholder="请说明你的相关经验、可服务时间或申请理由"></textarea></label>
+                </div>
+                <div class="volunteer-role-actions">
+                  <button class="pill-btn" @click="submitVolunteerRoleApplication">{{ volunteerRoleButtonLabel }}</button>
+                </div>
+              </div>
             </div>
 
             <div class="record-list" v-else-if="myTab === 'reservations'">
@@ -1765,7 +1798,7 @@
             <div class="record-list" v-else>
               <div class="record" v-for="item in activityRegistrations" :key="item.id">
                 <strong>{{ activityTitle(item.activity) }}</strong>
-                <div class="list-meta">{{ formatDateTime(item.activity.activity_time) }} · {{ locationLabel(item.activity.location) }}</div>
+                <div class="list-meta">{{ activityMetaLabel(item.activity) }}</div>
                 <div class="list-meta">状态：{{ activityStatusLabel(item.status) }}</div>
                 <div class="sub-actions" style="margin-top: 12px">
                   <button class="ghost-btn" @click="openActivity(item.activity.id)">查看详情</button>
@@ -1985,10 +2018,35 @@
           </template>
 
           <template v-else>
+            <div class="panel" v-if="adminVolunteerRoleApplications.length">
+              <h3>志愿者身份申请</h3>
+              <table style="margin-top: 18px">
+                <thead><tr><th>申请人</th><th>服务方向</th><th>申请说明</th><th>申请时间</th><th>操作</th></tr></thead>
+                <tbody>
+                  <tr v-for="app in adminVolunteerRoleApplications" :key="app.id">
+                    <td>{{ app.user.real_name || app.user.username }}</td>
+                    <td>{{ app.service_area || '未填写' }}</td>
+                    <td>{{ app.motivation || '未填写' }}</td>
+                    <td>{{ formatDateTime(app.applied_at) }}</td>
+                    <td>
+                      <div class="card-actions">
+                        <button class="pill-btn" @click="approveVolunteerRoleApplication(app.id)">通过</button>
+                        <button class="ghost-btn" @click="rejectVolunteerRoleApplication(app.id)">拒绝</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="panel" v-else>
+              <div class="empty-state">暂无待审批的志愿者身份申请。</div>
+            </div>
+
             <div class="panel" v-if="!adminApplications.length">
               <div class="empty-state">暂无待审批的志愿者申请。</div>
             </div>
             <table v-else>
+              <caption style="caption-side: top; text-align: left; padding-bottom: 12px; color: var(--text); font-weight: 600;">活动参与申请</caption>
               <thead><tr><th>志愿者</th><th>申请活动</th><th>申请时间</th><th>操作</th></tr></thead>
               <tbody>
                 <tr v-for="app in adminApplications" :key="app.id">
@@ -2026,7 +2084,7 @@
               <article class="activity-card" v-for="item in volunteerAvailableActivities" :key="item.id">
                 <img class="card-image" :src="imageFor(item.cover_image_url)" :alt="item.title" />
                 <div class="card-body">
-                  <div class="meta">{{ formatDateTime(item.activity_time) }} · {{ locationLabel(item.location) }}</div>
+                  <div class="meta">{{ activityMetaLabel(item) }}</div>
                   <h3>{{ activityTitle(item) }}</h3>
                   <p>{{ activitySummary(item) }}</p>
                   <div class="list-meta" style="margin-top: 12px">已报名 {{ item.registered_count }} / {{ item.capacity }}</div>
@@ -2044,7 +2102,7 @@
             <div class="record-list" v-if="volunteerApplications.length">
               <div class="record" v-for="app in volunteerApplications" :key="app.id">
                 <strong>{{ activityTitle(app.activity) }}</strong>
-                <div class="list-meta">{{ formatDateTime(app.activity.activity_time) }} · {{ locationLabel(app.activity.location) }}</div>
+                <div class="list-meta">{{ activityMetaLabel(app.activity) }}</div>
                 <span class="badge" :style="{ background: app.status === 'approved' ? 'rgba(46,125,50,0.12)' : app.status === 'rejected' ? 'rgba(166,31,36,0.12)' : 'rgba(195,160,99,0.2)', color: app.status === 'approved' ? '#2e7d32' : app.status === 'rejected' ? 'var(--brand)' : '#8d6e30' }">{{ applicationStatusLabel(app.status) }}</span>
                 <div class="list-meta" style="margin-top: 8px">申请时间：{{ formatDateTime(app.applied_at) }}</div>
                 <div class="sub-actions" style="margin-top: 12px">
@@ -2061,7 +2119,7 @@
               <div class="record-list">
                 <div class="record" v-for="item in volunteerActivities" :key="item.id">
                   <strong>{{ activityTitle(item) }}</strong>
-                  <div class="list-meta">{{ formatDateTime(item.activity_time) }} · {{ locationLabel(item.location) }}</div>
+                  <div class="list-meta">{{ activityMetaLabel(item) }}</div>
                   <div class="list-meta">已报名 {{ item.registered_count }} / {{ item.capacity }}</div>
                   <div class="list-meta">材料：{{ item.materials || '现场统一提供' }}</div>
                   <div class="sub-actions" style="margin-top: 12px">
@@ -2230,6 +2288,7 @@
             reservations: [],
             activityRegistrations: [],
             profile: null,
+            volunteerRoleApplication: null,
             selectedExhibition: null,
             selectedCollection: null,
             selectedActivity: null,
@@ -2254,10 +2313,12 @@
             adminReservationDate: "",
             adminReservationSlot: "",
             adminApplications: [],
+            adminVolunteerRoleApplications: [],
             adminExhibition: { title: "", description: "", start_date: "", end_date: "", location: "", status: "published", cover_image_url: "" },
             adminCollection: { exhibition_id: "", name: "", category: "", dynasty: "", description: "", image_url: "" },
             adminActivity: { title: "", description: "", activity_time: "", location: "", category: "", target_audience: "", materials: "", preparation_note: "", duration_minutes: 90, capacity: 20, status: "published", cover_image_url: "", volunteer_ids: [] },
             adminGuide: { exhibition_id: "", hall_name: "", route_description: "", text_guide: "", map_image_url: "" },
+            volunteerRoleForm: { service_area: "", motivation: "" },
             volunteerTab: "available",
             volunteerActivities: [],
             volunteerRegistrations: [],
@@ -2274,6 +2335,15 @@
           },
           isVolunteer() {
             return this.user && this.user.role === "volunteer";
+          },
+          isVisitor() {
+            return this.user && this.user.role === "visitor";
+          },
+          volunteerRoleButtonLabel() {
+            if (!this.volunteerRoleApplication) return "提交志愿者申请";
+            if (this.volunteerRoleApplication.status === "pending") return "更新申请信息";
+            if (this.volunteerRoleApplication.status === "rejected") return "重新提交申请";
+            return "提交志愿者申请";
           },
           backendOrigin() {
             return API_BASE.replace(/\/api\/?$/, "");
@@ -2342,6 +2412,15 @@
             if (!this.selectedDate) return [];
             return this.slots.filter((slot) => slot.visit_date === this.selectedDate);
           },
+          activeReservationByDate() {
+            const map = {};
+            this.reservations
+              .filter((item) => item.status === "active" && item.slot?.visit_date)
+              .forEach((item) => {
+                map[item.slot.visit_date] = item;
+              });
+            return map;
+          },
           adminReservationSlots() {
             const source = this.adminReservationDate
               ? this.slots.filter((slot) => slot.visit_date === this.adminReservationDate)
@@ -2351,6 +2430,7 @@
           selectedDateSummary() {
             if (!this.selectedDate) return "请选择参观日期。";
             if (this.isMonday(this.selectedDate)) return `${this.selectedDate} 为周一，闭馆不开放预约。`;
+            if (this.activeReservationForDate(this.selectedDate)) return `${this.selectedDate} 已有预约记录，如需改约请先取消当前时间段。`;
             if (!this.filteredSlots.length) return `${this.selectedDate} 当前没有可预约场次。`;
             return `${this.selectedDate} 提供 4 个参观时段，可按剩余名额选择预约。`;
           },
@@ -2446,6 +2526,24 @@
           activityCategoryLabel(category) {
             return category || "活动";
           },
+          activityScheduleLabel(item) {
+            if (!item || !item.activity_time) return "";
+            if ((item.category || "").trim() === "非遗体验") return "";
+            const date = new Date(item.activity_time);
+            return date.toLocaleString("zh-CN", {
+              hour12: false,
+              year: "numeric",
+              month: "numeric",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+          },
+          activityMetaLabel(item) {
+            const location = this.locationLabel(item?.location);
+            const schedule = this.activityScheduleLabel(item);
+            return schedule ? `${schedule} · ${location}` : location;
+          },
           activitySummary(item, detail = false) {
             const title = typeof item === "string" ? item : item?.title;
             if (ACTIVITY_SUMMARY_MAP[title]) {
@@ -2489,6 +2587,22 @@
           },
           reservationStatusLabel(status) {
             return { active: "已预约", cancelled: "已取消", expired: "已过期" }[status] || status;
+          },
+          activeReservationForDate(date) {
+            return this.activeReservationByDate[date] || null;
+          },
+          canReserveSlot(slot) {
+            if (!this.isLoggedIn) return false;
+            if (!slot || slot.available_count <= 0) return false;
+            const sameDayReservation = this.activeReservationForDate(slot.visit_date);
+            return !sameDayReservation;
+          },
+          reservationButtonLabel(slot) {
+            if (!this.isLoggedIn) return "提交预约";
+            const sameDayReservation = this.activeReservationForDate(slot?.visit_date);
+            if (sameDayReservation) return "当日已预约";
+            if (slot.available_count <= 0) return "名额已满";
+            return "提交预约";
           },
           activityStatusLabel(status) {
             return { active: "已报名", cancelled: "已取消" }[status] || status;
@@ -2592,7 +2706,12 @@
             await this.loadPublicCollections();
           },
           async loadPrivateData() {
-            await Promise.all([this.loadProfile(), this.loadReservations(), this.loadActivityRegistrations()]);
+            await this.loadProfile();
+            await Promise.all([
+              this.loadReservations(),
+              this.loadActivityRegistrations(),
+              this.loadVolunteerRoleApplication(),
+            ]);
             if (this.isAdmin) await this.loadAdminData();
             if (this.isVolunteer) await this.loadVolunteerData();
           },
@@ -2639,6 +2758,16 @@
           },
           async loadProfile() {
             this.profile = await this.api("/profile/");
+            this.user = { ...this.user, ...this.profile };
+            localStorage.setItem("museum_user", JSON.stringify(this.user));
+          },
+          async loadVolunteerRoleApplication() {
+            if (!this.isLoggedIn) return;
+            this.volunteerRoleApplication = await this.api("/my/volunteer-role-application/");
+            this.volunteerRoleForm = {
+              service_area: this.volunteerRoleApplication?.service_area || "",
+              motivation: this.volunteerRoleApplication?.motivation || "",
+            };
           },
           async loadReservations() {
             if (!this.isLoggedIn) return;
@@ -2681,10 +2810,13 @@
             this.token = "";
             this.user = null;
             this.profile = null;
+            this.volunteerRoleApplication = null;
+            this.volunteerRoleForm = { service_area: "", motivation: "" };
             this.reservations = [];
             this.activityRegistrations = [];
             this.adminReservations = [];
             this.adminApplications = [];
+            this.adminVolunteerRoleApplications = [];
             this.volunteerActivities = [];
             this.volunteerRegistrations = [];
             this.volunteerAvailableActivities = [];
@@ -2735,7 +2867,7 @@
             this.adminActivities = activities;
             this.adminGuides = guides;
             this.adminVolunteers = volunteers;
-            await this.loadAdminReservations();
+            await Promise.all([this.loadAdminReservations(), this.loadAdminVolunteerRoleApplications()]);
           },
           async loadAdminReservations() {
             const params = new URLSearchParams();
@@ -2913,11 +3045,45 @@
           async loadAdminApplications() {
             this.adminApplications = await this.api("/admin/applications/");
           },
+          async loadAdminVolunteerRoleApplications() {
+            this.adminVolunteerRoleApplications = await this.api("/admin/volunteer-role-applications/");
+          },
           async approveApplication(id) {
             try {
               await this.api(`/admin/applications/${id}/approve/`, { method: "POST" });
               await this.loadAdminApplications();
               this.notify("申请已通过。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async approveVolunteerRoleApplication(id) {
+            try {
+              await this.api(`/admin/volunteer-role-applications/${id}/approve/`, { method: "POST" });
+              await Promise.all([this.loadAdminVolunteerRoleApplications(), this.loadAdminData()]);
+              this.notify("志愿者身份申请已通过。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async rejectVolunteerRoleApplication(id) {
+            try {
+              await this.api(`/admin/volunteer-role-applications/${id}/reject/`, { method: "POST" });
+              await this.loadAdminVolunteerRoleApplications();
+              this.notify("志愿者身份申请已拒绝。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async submitVolunteerRoleApplication() {
+            try {
+              const hadExistingApplication = Boolean(this.volunteerRoleApplication);
+              await this.api("/my/volunteer-role-application/", {
+                method: "POST",
+                body: JSON.stringify(this.volunteerRoleForm),
+              });
+              await this.loadVolunteerRoleApplication();
+              this.notify(hadExistingApplication ? "志愿者申请信息已更新，等待管理员审批。" : "志愿者申请已提交，等待管理员审批。");
             } catch (error) {
               this.notify(error.message, "error");
             }
