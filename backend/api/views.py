@@ -358,10 +358,13 @@ def admin_reservations(request):
     qs = Reservation.objects.select_related("slot", "user", "user__profile").order_by("-created_at")
     date = request.GET.get("date")
     slot_id = request.GET.get("slot_id")
+    time_slot = request.GET.get("time_slot")
     if date:
         qs = qs.filter(slot__visit_date=date)
     if slot_id:
         qs = qs.filter(slot_id=slot_id)
+    if time_slot:
+        qs = qs.filter(slot__time_slot=time_slot)
     return ok([reservation_payload(row) for row in qs])
 
 
@@ -441,7 +444,10 @@ def volunteer_available_activities(request):
     user, error = require_role(request, Profile.ROLE_VOLUNTEER)
     if error:
         return error
-    applied_ids = ActivityVolunteer.objects.filter(volunteer=user).values_list("activity_id", flat=True)
+    applied_ids = ActivityVolunteer.objects.filter(
+        volunteer=user,
+        status__in=[ActivityVolunteer.STATUS_PENDING, ActivityVolunteer.STATUS_APPROVED],
+    ).values_list("activity_id", flat=True)
     rows = MuseumActivity.objects.filter(status="published").exclude(id__in=applied_ids).order_by("activity_time")
     return ok([activity_payload(row) for row in rows])
 

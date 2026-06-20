@@ -22,7 +22,12 @@ class ApiFlowTests(TestCase):
         )
         self.slot = VisitSlot.objects.create(
             visit_date=timezone.localdate() + timedelta(days=1),
-            time_slot="09:30-11:30",
+            time_slot="09:00-11:00",
+            capacity=1,
+        )
+        self.second_slot = VisitSlot.objects.create(
+            visit_date=self.slot.visit_date,
+            time_slot="11:00-13:00",
             capacity=1,
         )
         self.activity = MuseumActivity.objects.create(
@@ -33,6 +38,14 @@ class ApiFlowTests(TestCase):
             capacity=10,
         )
         ActivityVolunteer.objects.create(activity=self.activity, volunteer=self.volunteer)
+        self.extra_activity = MuseumActivity.objects.create(
+            title="非遗体验课",
+            description="测试活动二",
+            activity_time=timezone.now() + timedelta(days=5),
+            location="非遗手工艺体验中心",
+            capacity=10,
+            status=MuseumActivity.STATUS_PUBLISHED,
+        )
 
     def create_user(self, username, password, role):
         user = User.objects.create_user(username=username, password=password, email=f"{username}@example.com")
@@ -67,6 +80,22 @@ class ApiFlowTests(TestCase):
         response = admin_client.get("/api/admin/reservations/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()), 1)
+
+    def test_admin_can_filter_reservations_by_time_slot(self):
+        visitor_client = self.login_client("visitor", "visitor123")
+        visitor_client.post("/api/reservations/", {"slot_id": self.slot.id}, format="json")
+
+        other_visitor = self.create_user("visitor_b", "visitor123", Profile.ROLE_VISITOR)
+        other_client = self.login_client("visitor_b", "visitor123")
+        other_client.post("/api/reservations/", {"slot_id": self.second_slot.id}, format="json")
+
+        admin_client = self.login_client("admin", "admin123")
+        response = admin_client.get(f"/api/admin/reservations/?date={self.slot.visit_date}&time_slot=11:00-13:00")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()), 1)
+        self.assertEqual(response.json()[0]["user"]["username"], other_visitor.username)
+        self.assertEqual(response.json()[0]["slot"]["time_slot"], "11:00-13:00")
 
     def test_expired_token_cannot_access_protected_endpoint(self):
         client = self.login_client("visitor", "visitor123")
@@ -123,6 +152,28 @@ class ApiFlowTests(TestCase):
         response = volunteer_client.get(f"/api/volunteer/activities/{self.activity.id}/registrations/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()[0]["user"]["username"], "visitor")
+
+    def test_rejected_volunteer_application_can_be_applied_again(self):
+        volunteer_client = self.login_client("volunteer", "volunteer123")
+        admin_client = self.login_client("admin", "admin123")
+
+        apply_response = volunteer_client.post(f"/api/volunteer/activities/{self.extra_activity.id}/apply/")
+        self.assertEqual(apply_response.status_code, 200)
+        rv = ActivityVolunteer.objects.get(activity=self.extra_activity, volunteer=self.volunteer)
+
+        reject_response = admin_client.post(f"/api/admin/applications/{rv.id}/reject/")
+        self.assertEqual(reject_response.status_code, 200)
+        rv.refresh_from_db()
+        self.assertEqual(rv.status, ActivityVolunteer.STATUS_REJECTED)
+
+        available_response = volunteer_client.get("/api/volunteer/available-activities/")
+        self.assertEqual(available_response.status_code, 200)
+        self.assertIn(self.extra_activity.id, [item["id"] for item in available_response.json()])
+
+        reapply_response = volunteer_client.post(f"/api/volunteer/activities/{self.extra_activity.id}/apply/")
+        self.assertEqual(reapply_response.status_code, 200)
+        rv.refresh_from_db()
+        self.assertEqual(rv.status, ActivityVolunteer.STATUS_PENDING)
 
     def test_admin_collection_create_requires_exhibition_id_when_missing(self):
         admin_client = self.login_client("admin", "admin123")

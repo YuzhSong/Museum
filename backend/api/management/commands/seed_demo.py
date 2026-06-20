@@ -18,6 +18,236 @@ from api.models import (
 
 
 DATA_PATH = Path(__file__).resolve().parents[2] / "data" / "official_content.json"
+ACTIVITY_ROWS = [
+    {
+        "title": "嵊州竹编蹴鞠体验",
+        "description": "围绕嵊州竹编的历史与编织技法展开，课程将带领观众了解这项国家级非遗的工艺特点，并动手完成竹编蹴鞠球，感受传统竹编的文化韵味与结构之美。",
+        "location": "非遗手工艺体验中心",
+        "category": "非遗体验",
+        "target_audience": "青少年与公众观众",
+        "materials": "竹篾、球体骨架、编织辅件由现场统一提供。",
+        "preparation_note": "建议提前到场熟悉编织步骤，细节制作阶段请听从现场老师指导。",
+        "duration_minutes": 90,
+        "capacity": 18,
+        "cover_image_url": "/static/official/activities/shengzhou-bamboo-weaving.jpg",
+    },
+    {
+        "title": "传统制香体验",
+        "description": "课程以清苑传统制香技艺为主线，介绍中国香文化的历史源流和配香工序，参与者可体验选料、配料与成型，完成香包、香锤、香牌或香珠等作品。",
+        "location": "非遗手工艺体验中心",
+        "category": "非遗体验",
+        "target_audience": "青少年与成人",
+        "materials": "香粉、模具、香材配件由现场统一提供。",
+        "preparation_note": "课程包含粉料操作，建议穿着便于活动的服装并遵循现场操作提示。",
+        "duration_minutes": 80,
+        "capacity": 16,
+        "cover_image_url": "/static/official/activities/qingyuan-incense-making.jpg",
+    },
+    {
+        "title": "玉牌挂件制作",
+        "description": "从中国玉文化与古代制玉技艺讲起，课程将带领观众体验“如切如磋，如琢如磨”的工艺意趣，在天然玉石挂件上完成属于自己的创作。",
+        "location": "非遗手工艺体验中心",
+        "category": "非遗体验",
+        "target_audience": "10 岁以上观众",
+        "materials": "玉牌坯件、打磨与装饰工具由现场统一提供。",
+        "preparation_note": "需按指导分步完成打磨与装饰，低龄参与者建议由家长陪同。",
+        "duration_minutes": 90,
+        "capacity": 18,
+        "cover_image_url": "/static/official/activities/jade-carving-pendant.jpg",
+    },
+    {
+        "title": "仿点翠制作",
+        "description": "课程将介绍点翠工艺的历史渊源、制作流程与当代环保替代材料的应用，参与者可体验拓稿、剪羽、胶合等步骤，完成一件仿点翠作品。",
+        "location": "非遗手工艺体验中心",
+        "category": "非遗体验",
+        "target_audience": "青少年与成人",
+        "materials": "仿点翠材料、底托、裁剪与粘贴工具由现场统一提供。",
+        "preparation_note": "制作环节较细致，建议预留完整课程时间完成作品。",
+        "duration_minutes": 100,
+        "capacity": 14,
+        "cover_image_url": "/static/official/activities/kingfisher-feather-inlay.jpg",
+    },
+    {
+        "title": "凤翔泥塑彩绘",
+        "description": "课程聚焦凤翔泥塑的造型传统、色彩语言与吉祥寓意，参与者将学习泥塑工艺流程，并体验彩绘、上光等步骤，完成生动有趣的泥塑作品。",
+        "location": "非遗手工艺体验中心",
+        "category": "非遗体验",
+        "target_audience": "亲子家庭与公众观众",
+        "materials": "泥塑坯体、彩绘颜料、上光辅具由现场统一提供。",
+        "preparation_note": "彩绘阶段请注意衣物防护，作品完成后需按要求放置晾干。",
+        "duration_minutes": 75,
+        "capacity": 24,
+        "cover_image_url": "/static/official/activities/fengxiang-clay-sculpture.jpg",
+    },
+    {
+        "title": "敦煌石粉彩绘",
+        "description": "以敦煌壁画的历史、题材与色彩体系为切入点，课程将教授线描、调色与敷色的基础步骤，参与者可在泥板上临摹一幅丝路壁画作品。",
+        "location": "非遗手工艺体验中心",
+        "category": "非遗体验",
+        "target_audience": "12 岁以上观众",
+        "materials": "石粉颜料、泥板、毛笔与调色工具由现场统一提供。",
+        "preparation_note": "课程涉及颜料调配，建议按老师节奏分层上色，避免画面混色。",
+        "duration_minutes": 100,
+        "capacity": 16,
+        "cover_image_url": "/static/official/activities/dunhuang-pigment-painting.jpg",
+    },
+    {
+        "title": "龙泉青瓷拉坯体验",
+        "description": "课程将介绍龙泉青瓷的发展历史与烧制技艺，并带领参与者体验揉泥、找中心、开孔等拉坯基础手法，在触摸泥土的过程中感受青瓷工艺之美。",
+        "location": "非遗手工艺体验中心",
+        "category": "非遗体验",
+        "target_audience": "青少年与成人",
+        "materials": "陶泥、拉坯工具与基础围裙由现场统一提供。",
+        "preparation_note": "拉坯过程对手部稳定性有一定要求，建议听完示范后再开始操作。",
+        "duration_minutes": 90,
+        "capacity": 16,
+        "cover_image_url": "/static/official/activities/longquan-celadon.jpg",
+    },
+    {
+        "title": "扬州漆器螺钿镶嵌",
+        "description": "以扬州漆器髹饰技艺中的螺钿工艺为核心，课程将带领观众了解其历史脉络和装饰语言，并通过镶嵌、打磨、抛光等步骤完成一件螺钿作品。",
+        "location": "非遗手工艺体验中心",
+        "category": "非遗体验",
+        "target_audience": "青少年与成人",
+        "materials": "螺钿薄片、底板、打磨与抛光材料由现场统一提供。",
+        "preparation_note": "请按顺序完成镶嵌与打磨，避免在未固定前移动作品。",
+        "duration_minutes": 100,
+        "capacity": 14,
+        "cover_image_url": "/static/official/activities/yangzhou-lacquer-inlay.jpg",
+    },
+    {
+        "title": "扬州漆艺打磨抛光",
+        "description": "课程将从扬州漆艺的历史与工艺品类出发，带领参与者体验漆器由粗到细的打磨与抛光过程，感受漆艺器物表面质感的变化与传统审美。",
+        "location": "非遗手工艺体验中心",
+        "category": "非遗体验",
+        "target_audience": "青少年与成人",
+        "materials": "漆器坯体、砂纸、抛光辅具由现场统一提供。",
+        "preparation_note": "打磨过程需耐心完成多个层次，建议全程佩戴现场提供的防护用品。",
+        "duration_minutes": 90,
+        "capacity": 16,
+        "cover_image_url": "/static/official/activities/lacquer-polishing.jpg",
+    },
+    {
+        "title": "朱仙镇木版年画",
+        "description": "围绕朱仙镇木版年画的艺术风格、传统用色与年俗寓意展开，课程将带领观众体验刷墨、覆纸、印制等流程，制作年历或冰箱贴等作品。",
+        "location": "非遗手工艺体验中心",
+        "category": "非遗体验",
+        "target_audience": "亲子家庭与学生团体",
+        "materials": "版画底板、颜料、滚筒、纸张由现场统一提供。",
+        "preparation_note": "印制环节需要按步骤排队完成，请注意保持画面与工具整洁。",
+        "duration_minutes": 85,
+        "capacity": 22,
+        "cover_image_url": "/static/official/activities/zhuxianzhen-woodblock-print.jpg",
+    },
+    {
+        "title": "蔚县剪纸窗花",
+        "description": "课程将介绍蔚县剪纸的历史文化、刀刻特色与色彩风格，参与者可在老师指导下练习刻画线条与点染技巧，完成一件具有民间艺术气息的窗花作品。",
+        "location": "非遗手工艺体验中心",
+        "category": "非遗体验",
+        "target_audience": "10 岁以上观众",
+        "materials": "彩纸、刻刀、底板与点染辅材由现场统一提供。",
+        "preparation_note": "课程涉及刻刀使用，请严格按照安全提示操作。",
+        "duration_minutes": 75,
+        "capacity": 18,
+        "cover_image_url": "/static/official/activities/yuxian-paper-cut.jpg",
+    },
+    {
+        "title": "北京灯彩制作",
+        "description": "从北京灯彩的历史流变、分类与制作手段讲起，课程将带领观众完成裁剪、拼接、粘贴与装饰等步骤，感受传统灯彩的节庆氛围与造型趣味。",
+        "location": "非遗手工艺体验中心",
+        "category": "非遗体验",
+        "target_audience": "亲子家庭与公众观众",
+        "materials": "灯彩骨架、彩纸、装饰材料由现场统一提供。",
+        "preparation_note": "建议亲子观众共同完成组装步骤，便于更好地控制结构稳定性。",
+        "duration_minutes": 75,
+        "capacity": 20,
+        "cover_image_url": "/static/official/activities/beijing-lantern.jpg",
+    },
+    {
+        "title": "纸笺团扇制作",
+        "description": "课程将介绍纸笺加工技艺的发展脉络与代表性纸笺品类，参与者可体验水上点划与团扇轻覆的制作方式，完成一把独一无二的团扇作品。",
+        "location": "非遗手工艺体验中心",
+        "category": "非遗体验",
+        "target_audience": "青少年与成人",
+        "materials": "团扇、纸笺染料与水拓工具由现场统一提供。",
+        "preparation_note": "制作时请按指导控制水面纹理，避免过度搅动影响图案效果。",
+        "duration_minutes": 70,
+        "capacity": 18,
+        "cover_image_url": "/static/official/activities/decorated-paper-fan.jpg",
+    },
+    {
+        "title": "中式盘扣制作",
+        "description": "围绕中式服装盘扣的历史、经典样式与制作逻辑展开，课程将带领参与者体验盘绕、固定与整形等步骤，感受传统服饰工艺的精巧结构。",
+        "location": "非遗手工艺体验中心",
+        "category": "非遗体验",
+        "target_audience": "青少年与成人",
+        "materials": "盘扣绳、布面辅材与定型工具由现场统一提供。",
+        "preparation_note": "盘绕工序较细致，建议跟随老师节奏逐步完成基础结型。",
+        "duration_minutes": 85,
+        "capacity": 18,
+        "cover_image_url": "/static/official/activities/chinese-knot-button.jpg",
+    },
+    {
+        "title": "绒花制作体验",
+        "description": "课程将介绍绒花的历史流变与基础造型技法，参与者可在老师讲解下完成一枚精美绒花作品，体验传统绒花从材料到成形的制作魅力。",
+        "location": "非遗手工艺体验中心",
+        "category": "非遗体验",
+        "target_audience": "青少年与成人",
+        "materials": "绒条、金属丝、花托与装配工具由现场统一提供。",
+        "preparation_note": "细节塑形较多，建议预留完整课程时间并耐心完成收尾。",
+        "duration_minutes": 100,
+        "capacity": 14,
+        "cover_image_url": "/static/official/activities/ronghua-flower.jpg",
+    },
+    {
+        "title": "常设展公益讲解",
+        "description": "面向初次到馆观众的常设展公益讲解活动，围绕馆藏门类、代表工艺与重点展柜展开，帮助观众快速建立参观主线与内容理解框架。",
+        "location": "一层序厅集合",
+        "category": "讲解活动",
+        "target_audience": "公众观众",
+        "materials": "无需自备材料，建议提前 10 分钟到达集合点。",
+        "preparation_note": "讲解期间请跟随志愿者统一动线参观，避免掉队影响节奏。",
+        "duration_minutes": 60,
+        "capacity": 30,
+        "cover_image_url": "/static/official/exhibitions/prosperity-nourished-by-chinese-culture-basic-exhibition-of-chinese-arts-and-crafts.jpg",
+    },
+    {
+        "title": "青瓷与玉雕专题导赏",
+        "description": "聚焦青瓷与玉雕两大工艺门类的专题讲解活动，结合代表器物讲解材料特征、造型语言与审美脉络，适合希望深看重点展品的观众。",
+        "location": "常设陈列区服务台",
+        "category": "讲解活动",
+        "target_audience": "青少年与成人",
+        "materials": "无需自备材料，可自带笔记本记录重点内容。",
+        "preparation_note": "专题导赏节奏较紧凑，建议提前入场并全程跟随讲解。",
+        "duration_minutes": 50,
+        "capacity": 24,
+        "cover_image_url": "/static/official/collections/guan-er-ping.jpg",
+    },
+    {
+        "title": "非遗技艺亲子导览",
+        "description": "面向亲子家庭的轻量化讲解活动，通过器物观察、互动提问与路线串联，带孩子理解非遗技艺背后的生活场景与文化趣味。",
+        "location": "四层专题展厅入口",
+        "category": "讲解活动",
+        "target_audience": "亲子家庭",
+        "materials": "无需自备材料，建议家长陪同完成全程导览。",
+        "preparation_note": "活动中包含互动问答，请家长协助儿童保持队列与观展秩序。",
+        "duration_minutes": 45,
+        "capacity": 20,
+        "cover_image_url": "/static/official/exhibitions/splendid-diversity-practices-in-chinese-ich-protection.jpg",
+    },
+    {
+        "title": "馆藏精品志愿者讲解",
+        "description": "由志愿者围绕馆内精品器物开展定时讲解，重点介绍作品工艺、纹样寓意与时代背景，适合希望在较短时间内抓住亮点的观众。",
+        "location": "精品展柜区集合点",
+        "category": "讲解活动",
+        "target_audience": "公众观众",
+        "materials": "无需自备材料，讲解结束后可自行延伸参观。",
+        "preparation_note": "请提前到达集合点签到，迟到可能无法加入当场讲解队伍。",
+        "duration_minutes": 40,
+        "capacity": 18,
+        "cover_image_url": "/static/official/collections/ru-yi-jian.jpg",
+    },
+]
 
 
 class Command(BaseCommand):
@@ -41,8 +271,19 @@ class Command(BaseCommand):
         activities = self.seed_activities(payload["activities"])
         self.seed_guides(exhibitions)
 
-        for activity in activities:
-            ActivityVolunteer.objects.get_or_create(activity=activity, volunteer=volunteer)
+        ActivityVolunteer.objects.filter(volunteer=volunteer).delete()
+        volunteer_plan = [
+            ("常设展公益讲解", ActivityVolunteer.STATUS_APPROVED),
+            ("青瓷与玉雕专题导赏", ActivityVolunteer.STATUS_APPROVED),
+            ("非遗技艺亲子导览", ActivityVolunteer.STATUS_PENDING),
+            ("馆藏精品志愿者讲解", ActivityVolunteer.STATUS_PENDING),
+        ]
+        activity_map = {activity.title: activity for activity in activities}
+        for title, status in volunteer_plan:
+            activity = activity_map.get(title)
+            if not activity:
+                continue
+            ActivityVolunteer.objects.create(activity=activity, volunteer=volunteer, status=status)
 
         self.stdout.write(self.style.SUCCESS("Demo data ready from official museum content."))
         self.stdout.write("Accounts: admin/admin123, visitor/visitor123, volunteer/volunteer123")
@@ -124,209 +365,43 @@ class Command(BaseCommand):
             )
 
     def seed_slots(self):
-        for day in range(1, 8):
-            for time_slot in ["09:00-11:00", "11:00-13:00", "14:00-16:00", "16:00-17:00"]:
+        today = timezone.localdate()
+        open_time_slots = ["09:00-11:00", "11:00-13:00", "13:00-15:00", "15:00-17:00"]
+        desired_keys = set()
+
+        for day in range(14):
+            visit_date = today + timedelta(days=day)
+            if visit_date.weekday() == 0:
+                continue
+            for time_slot in open_time_slots:
+                desired_keys.add((visit_date, time_slot))
                 VisitSlot.objects.update_or_create(
-                    visit_date=timezone.localdate() + timedelta(days=day),
+                    visit_date=visit_date,
                     time_slot=time_slot,
                     defaults={"capacity": 60, "status": VisitSlot.STATUS_OPEN},
                 )
 
+        removable = VisitSlot.objects.filter(visit_date__gte=today)
+        for slot in removable:
+            if (slot.visit_date, slot.time_slot) not in desired_keys:
+                if slot.booked_count > 0:
+                    slot.status = VisitSlot.STATUS_CLOSED
+                    slot.save(update_fields=["status"])
+                else:
+                    slot.delete()
+
     def seed_activities(self, rows):
         created = []
         base_time = timezone.now() + timedelta(days=3)
-        workshop_rows = [
-            {
-                "title": "扎染手作体验课",
-                "description": "围绕传统扎染工艺开展亲子手作体验，了解扎结、染色与纹样变化，完成可带走的小幅扎染作品。",
-                "location": "非遗手工艺体验中心",
-                "category": "亲子手作",
-                "target_audience": "6 岁以上儿童与家长",
-                "materials": "棉布方巾、植物染料、皮筋、手套、围裙、清洗盆",
-                "preparation_note": "志愿者需提前 30 分钟分装染料与防护用品，管理员需确认耗材与清洁安排。",
-                "duration_minutes": 90,
-                "capacity": 18,
-            },
-            {
-                "title": "福灯制作工坊",
-                "description": "结合传统节令文化完成纸艺灯笼制作，适合儿童与家庭共同参与。",
-                "location": "非遗手工艺体验中心",
-                "category": "节庆手作",
-                "target_audience": "亲子家庭",
-                "materials": "灯笼骨架、彩纸、流苏、胶水、剪刀、毛笔",
-                "preparation_note": "志愿者负责桌面分组和儿童安全提示，管理员需准备备用灯笼骨架。",
-                "duration_minutes": 75,
-                "capacity": 20,
-            },
-            {
-                "title": "景泰蓝掐丝体验",
-                "description": "以景泰蓝基础工艺为引导，体验掐丝、填彩与纹样设计。",
-                "location": "非遗手工艺体验中心",
-                "category": "工艺体验",
-                "target_audience": "10 岁以上青少年与成人",
-                "materials": "铜胎底板、掐丝铜线、彩砂、点胶工具、镊子",
-                "preparation_note": "志愿者需示范掐丝步骤，管理员需按报名人数配齐安全工具。",
-                "duration_minutes": 120,
-                "capacity": 16,
-            },
-            {
-                "title": "竹编扇小课堂",
-                "description": "体验竹编基础穿插与扇面装饰，感受传统编织工艺的秩序感与手感。",
-                "location": "非遗手工艺体验中心",
-                "category": "编织体验",
-                "target_audience": "8 岁以上观众",
-                "materials": "竹篾、扇柄、棉线、压条、剪刀",
-                "preparation_note": "志愿者需提前修整竹篾边缘，管理员需准备防割手套。",
-                "duration_minutes": 90,
-                "capacity": 18,
-            },
-            {
-                "title": "制香体验课",
-                "description": "了解传统香文化与制香流程，亲手完成香牌或香丸制作。",
-                "location": "非遗手工艺体验中心",
-                "category": "传统生活美学",
-                "target_audience": "青少年与成人",
-                "materials": "香粉、模具、压片器、香盒、手套",
-                "preparation_note": "志愿者需维护制作台秩序，管理员需提前核对香材存量。",
-                "duration_minutes": 80,
-                "capacity": 16,
-            },
-            {
-                "title": "玉雕纹样体验",
-                "description": "围绕玉雕常见纹样进行描摹、刻画与审美讲解，适合展览延伸教学。",
-                "location": "非遗手工艺体验中心",
-                "category": "展览延伸",
-                "target_audience": "9 岁以上观众",
-                "materials": "纹样稿、描图纸、刻画笔、亚克力练习板",
-                "preparation_note": "志愿者需协助低龄观众完成描摹，管理员需打印足量纹样稿。",
-                "duration_minutes": 70,
-                "capacity": 20,
-            },
-            {
-                "title": "点翠首饰体验",
-                "description": "从传统点翠工艺纹样出发，完成安全替代材料的胸针或挂饰制作。",
-                "location": "非遗手工艺体验中心",
-                "category": "首饰手作",
-                "target_audience": "青少年与成人",
-                "materials": "金属底托、替代羽片材料、珠饰、镊子、胶水",
-                "preparation_note": "志愿者需提醒精细操作节奏，管理员需准备备用镊子与收纳盒。",
-                "duration_minutes": 100,
-                "capacity": 14,
-            },
-            {
-                "title": "泥塑瑞兽工坊",
-                "description": "以传统瑞兽造型为主题开展泥塑创作，适合儿童和家庭参与。",
-                "location": "非遗手工艺体验中心",
-                "category": "亲子手作",
-                "target_audience": "5 岁以上儿童与家长",
-                "materials": "超轻黏土、塑形刀、压板、展示底座",
-                "preparation_note": "志愿者需看护儿童工具使用，管理员需预留作品晾置区域。",
-                "duration_minutes": 75,
-                "capacity": 24,
-            },
-            {
-                "title": "敦煌石粉彩绘体验",
-                "description": "结合敦煌壁画色彩与图案，体验石粉彩绘的上色与层次控制。",
-                "location": "非遗手工艺体验中心",
-                "category": "绘画体验",
-                "target_audience": "12 岁以上观众",
-                "materials": "石粉颜料、调色盘、线稿板、毛笔、围裙",
-                "preparation_note": "志愿者负责讲解配色与清洗流程，管理员需准备防污台布。",
-                "duration_minutes": 100,
-                "capacity": 16,
-            },
-            {
-                "title": "龙泉青瓷纹样彩绘",
-                "description": "围绕龙泉青瓷器型与纹样进行釉下彩模拟体验，理解青瓷造型美学。",
-                "location": "非遗手工艺体验中心",
-                "category": "陶瓷体验",
-                "target_audience": "青少年与成人",
-                "materials": "素坯盘、颜料、勾线笔、展示托盘",
-                "preparation_note": "志愿者需指导器型拿取与摆放，管理员需核对素坯破损率。",
-                "duration_minutes": 90,
-                "capacity": 18,
-            },
-            {
-                "title": "漆艺小盒制作",
-                "description": "从漆艺髹饰与装饰语言切入，完成小盒表面纹样创作。",
-                "location": "非遗手工艺体验中心",
-                "category": "漆艺体验",
-                "target_audience": "10 岁以上观众",
-                "materials": "木盒坯、漆艺装饰片、描金笔、保护手套",
-                "preparation_note": "志愿者需提醒材料使用顺序，管理员需准备成品包装袋。",
-                "duration_minutes": 90,
-                "capacity": 16,
-            },
-            {
-                "title": "木版年画印制体验",
-                "description": "通过套色与拓印体验认识传统木版年画的印制流程与年俗寓意。",
-                "location": "非遗手工艺体验中心",
-                "category": "版画体验",
-                "target_audience": "亲子家庭与学生团体",
-                "materials": "版画底板、水性颜料、滚筒、宣纸、晾纸架",
-                "preparation_note": "志愿者需维持印制顺序，管理员需准备充足晾晒空间。",
-                "duration_minutes": 85,
-                "capacity": 22,
-            },
-            {
-                "title": "剪纸窗花课堂",
-                "description": "以节令纹样与吉祥图案为主，体验基础剪纸折叠与纹样构成。",
-                "location": "非遗手工艺体验中心",
-                "category": "节庆手作",
-                "target_audience": "7 岁以上观众",
-                "materials": "彩纸、安全剪刀、图样模板、收纳袋",
-                "preparation_note": "志愿者需重点照看低龄儿童剪刀使用，管理员需准备安全剪刀备用。",
-                "duration_minutes": 60,
-                "capacity": 24,
-            },
-            {
-                "title": "盘扣香囊制作",
-                "description": "围绕传统服饰细节与节庆配饰，体验基础盘扣与香囊拼装。",
-                "location": "非遗手工艺体验中心",
-                "category": "服饰手作",
-                "target_audience": "青少年与成人",
-                "materials": "盘扣绳、香囊包、香料包、针线包",
-                "preparation_note": "志愿者需协助缝线步骤，管理员需准备成品展示样本。",
-                "duration_minutes": 85,
-                "capacity": 18,
-            },
-            {
-                "title": "绒花发饰体验",
-                "description": "了解绒花基础造型方法，完成一件可佩戴的小型发饰作品。",
-                "location": "非遗手工艺体验中心",
-                "category": "首饰手作",
-                "target_audience": "青少年与成人",
-                "materials": "绒条、金属丝、发夹底托、热熔胶、剪刀",
-                "preparation_note": "志愿者需协助细节塑形，管理员需控制热熔工具的安全摆放。",
-                "duration_minutes": 100,
-                "capacity": 14,
-            },
-        ]
-        for index, row in enumerate(rows):
-            item, _ = MuseumActivity.objects.update_or_create(
-                title=row["title"].strip(),
-                defaults={
-                    "description": self.clean_summary(row.get("summary", ""), 900),
-                    "activity_time": base_time + timedelta(days=index * 5),
-                    "location": "中国工艺美术馆公共活动区",
-                    "category": "展演活动",
-                    "target_audience": "公众观众",
-                    "materials": "现场观演，无需自备材料。",
-                    "preparation_note": "志愿者负责现场引导与秩序维护，管理员提前确认座椅与音响。",
-                    "duration_minutes": 90,
-                    "capacity": 40 if index == 0 else 24,
-                    "status": MuseumActivity.STATUS_PUBLISHED,
-                    "cover_image_url": row.get("image_local", ""),
-                },
-            )
-            created.append(item)
-        workshop_image = rows[0].get("image_local", "") if rows else ""
-        for index, row in enumerate(workshop_rows, start=len(created)):
+        desired_titles = {row["title"] for row in ACTIVITY_ROWS}
+        MuseumActivity.objects.exclude(title__in=desired_titles).delete()
+
+        for offset, row in enumerate(ACTIVITY_ROWS):
             item, _ = MuseumActivity.objects.update_or_create(
                 title=row["title"],
                 defaults={
                     "description": row["description"],
-                    "activity_time": base_time + timedelta(days=index * 2),
+                    "activity_time": base_time + timedelta(days=offset * 2),
                     "location": row["location"],
                     "category": row["category"],
                     "target_audience": row["target_audience"],
@@ -335,7 +410,7 @@ class Command(BaseCommand):
                     "duration_minutes": row["duration_minutes"],
                     "capacity": row["capacity"],
                     "status": MuseumActivity.STATUS_PUBLISHED,
-                    "cover_image_url": workshop_image,
+                    "cover_image_url": row["cover_image_url"],
                 },
             )
             created.append(item)

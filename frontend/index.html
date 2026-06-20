@@ -751,6 +751,52 @@
         font-size: 20px;
       }
 
+      .activity-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      .activity-toolbar .filter-row {
+        gap: 10px;
+      }
+
+      .activity-card .card-foot {
+        margin-top: auto;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .reservation-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .reservation-toolbar .date-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .reservation-note {
+        margin-bottom: 14px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: var(--surface-2);
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
       .detail-inline {
         margin-top: 12px;
         padding: 14px;
@@ -808,8 +854,7 @@
         color: var(--muted);
       }
 
-      .tab-strip,
-      .auth-switch {
+      .tab-strip {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
@@ -819,8 +864,7 @@
         margin-bottom: 18px;
       }
 
-      .tab-strip button,
-      .auth-switch button {
+      .tab-strip button {
         min-height: 42px;
         padding: 0 16px;
         border-radius: 14px;
@@ -1442,19 +1486,40 @@
           <div class="section-head">
             <div>
               <h2>活动</h2>
-              <p>馆方公开活动、表演与公共教育内容。</p>
+              <p>按“非遗体验”和“讲解活动”浏览馆内活动内容。</p>
             </div>
           </div>
+          <div class="activity-toolbar">
+            <div class="filter-row">
+              <button
+                class="chip-btn"
+                :class="{ active: activeActivityCategory === '全部' }"
+                @click="activeActivityCategory = '全部'"
+              >
+                全部
+              </button>
+              <button
+                v-for="category in activityCategories"
+                :key="category"
+                class="chip-btn"
+                :class="{ active: activeActivityCategory === category }"
+                @click="activeActivityCategory = category"
+              >
+                {{ activityCategoryLabel(category) }}
+              </button>
+            </div>
+            <div class="meta">{{ filteredActivities.length }} 项活动</div>
+          </div>
           <div class="activity-grid">
-              <article class="activity-card" v-for="item in displayActivities" :key="item.id">
+              <article class="activity-card" v-for="item in filteredActivities" :key="item.id">
               <img class="card-image" :src="imageFor(item.cover_image_url)" :alt="item.title" />
               <div class="card-body">
                 <div class="meta">{{ formatDateTime(item.activity_time) }} · {{ locationLabel(item.location) }}</div>
                 <h3>{{ activityTitle(item) }}</h3>
                 <p>{{ activitySummary(item, true) }}</p>
-                <div class="list-meta" style="margin-top: 12px">已报名 {{ item.registered_count }} / {{ item.capacity }}</div>
-                <div class="card-actions">
+                <div class="card-foot">
                   <button class="pill-btn" @click="openActivity(item.id)">查看详情</button>
+                  <div class="list-meta">已报名 {{ item.registered_count }} / {{ item.capacity }}</div>
                 </div>
               </div>
             </article>
@@ -1476,7 +1541,7 @@
               <div class="badge-row">
                 <span class="badge">{{ formatDateTime(selectedActivity.activity_time) }}</span>
                 <span class="badge">{{ locationLabel(selectedActivity.location) }}</span>
-                <span class="badge" v-if="selectedActivity.category">{{ selectedActivity.category }}</span>
+                <span class="badge" v-if="selectedActivity.category">{{ activityCategoryLabel(selectedActivity.category) }}</span>
                 <span class="badge">剩余 {{ selectedActivity.available_count }}</span>
               </div>
               <h2>{{ activityTitle(selectedActivity) }}</h2>
@@ -1552,18 +1617,24 @@
           <div class="section-head">
             <div>
               <h2>预约参观</h2>
-              <p>未登录可先查看可预约场次；登录后可提交预约并在“我的”中管理。</p>
+              <p>默认展示当天可预约时段；可通过日历切换日期，周一闭馆。</p>
             </div>
           </div>
           <div class="two-grid">
             <div class="panel">
-              <div class="filter-row" style="margin-bottom: 16px; align-items: center; gap: 10px;">
-                <label style="display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; max-width: 240px;">
+              <div class="reservation-toolbar">
+                <label class="date-label">
                   <span style="font-size: 18px;">📅</span>
-                  <input type="date" v-model="selectedDate" style="border-radius: 14px; border: 1px solid var(--line); padding: 10px 14px; background: rgba(255,255,255,0.88); color: var(--text);" />
+                  <input
+                    type="date"
+                    v-model="selectedDate"
+                    :min="todayDateString()"
+                    style="border-radius: 14px; border: 1px solid var(--line); padding: 10px 14px; background: rgba(255,255,255,0.88); color: var(--text);"
+                  />
                 </label>
-                <button class="chip-btn" v-if="selectedDate" @click="selectedDate = ''">清除日期</button>
+                <div class="meta">开放时段：09-11、11-13、13-15、15-17</div>
               </div>
+              <div class="reservation-note">{{ selectedDateSummary }}</div>
 
               <div class="slot-list" v-if="filteredSlots.length">
                 <div class="slot-item" v-for="slot in filteredSlots" :key="slot.id">
@@ -1607,11 +1678,6 @@
             </div>
 
             <div class="auth-panel">
-              <div class="auth-switch">
-                <button :class="{ active: authMode === 'login' }" @click="authMode = 'login'">登录</button>
-                <button :class="{ active: authMode === 'register' }" @click="authMode = 'register'">注册</button>
-              </div>
-
               <form v-if="authMode === 'login'" @submit.prevent="login">
                 <h3>账号登录</h3>
                 <p class="sub-copy">输入用户名与密码后进入个人中心。</p>
@@ -1897,6 +1963,10 @@
             <div class="panel">
               <div class="filter-row">
                 <input v-model="adminReservationDate" type="date" style="max-width: 220px" />
+                <select v-model="adminReservationSlot" style="max-width: 220px">
+                  <option value="">全部时间段</option>
+                  <option v-for="slot in adminReservationSlots" :key="slot" :value="slot">{{ slot }}</option>
+                </select>
                 <button class="pill-btn" @click="loadAdminReservations">筛选</button>
                 <button class="ghost-btn" @click="clearAdminReservationFilter">清空</button>
               </div>
@@ -1978,6 +2048,7 @@
                 <span class="badge" :style="{ background: app.status === 'approved' ? 'rgba(46,125,50,0.12)' : app.status === 'rejected' ? 'rgba(166,31,36,0.12)' : 'rgba(195,160,99,0.2)', color: app.status === 'approved' ? '#2e7d32' : app.status === 'rejected' ? 'var(--brand)' : '#8d6e30' }">{{ applicationStatusLabel(app.status) }}</span>
                 <div class="list-meta" style="margin-top: 8px">申请时间：{{ formatDateTime(app.applied_at) }}</div>
                 <div class="sub-actions" style="margin-top: 12px">
+                  <button class="pill-btn" v-if="app.status === 'rejected'" @click="applyForActivity(app.activity.id)">重新申请</button>
                   <button class="ghost-btn" @click="openActivity(app.activity.id)">查看详情</button>
                 </div>
               </div>
@@ -2164,6 +2235,7 @@
             selectedActivity: null,
             selectedGuide: null,
             selectedDate: "",
+            activeActivityCategory: "全部",
             myTab: "profile",
             authMode: "login",
             activeCollectionCategory: "全部",
@@ -2180,6 +2252,7 @@
             adminReservations: [],
             adminVolunteers: [],
             adminReservationDate: "",
+            adminReservationSlot: "",
             adminApplications: [],
             adminExhibition: { title: "", description: "", start_date: "", end_date: "", location: "", status: "published", cover_image_url: "" },
             adminCollection: { exhibition_id: "", name: "", category: "", dynasty: "", description: "", image_url: "" },
@@ -2227,6 +2300,15 @@
             const official = this.activities.filter((item) => (item.cover_image_url || "").includes("/static/official/"));
             return official.length ? official : this.activities;
           },
+          activityCategories() {
+            const categories = [...new Set(this.displayActivities.map((item) => item.category).filter(Boolean))];
+            const preferred = ["非遗体验", "讲解活动"];
+            return preferred.filter((item) => categories.includes(item));
+          },
+          filteredActivities() {
+            if (this.activeActivityCategory === "全部") return this.displayActivities;
+            return this.displayActivities.filter((item) => item.category === this.activeActivityCategory);
+          },
           latestActivities() {
             return this.displayActivities.slice(0, 3);
           },
@@ -2257,7 +2339,20 @@
             return [...new Set(this.slots.map((slot) => slot.visit_date))];
           },
           filteredSlots() {
-            return this.selectedDate ? this.slots.filter((slot) => slot.visit_date === this.selectedDate) : this.slots;
+            if (!this.selectedDate) return [];
+            return this.slots.filter((slot) => slot.visit_date === this.selectedDate);
+          },
+          adminReservationSlots() {
+            const source = this.adminReservationDate
+              ? this.slots.filter((slot) => slot.visit_date === this.adminReservationDate)
+              : this.slots;
+            return [...new Set(source.map((slot) => slot.time_slot))];
+          },
+          selectedDateSummary() {
+            if (!this.selectedDate) return "请选择参观日期。";
+            if (this.isMonday(this.selectedDate)) return `${this.selectedDate} 为周一，闭馆不开放预约。`;
+            if (!this.filteredSlots.length) return `${this.selectedDate} 当前没有可预约场次。`;
+            return `${this.selectedDate} 提供 4 个参观时段，可按剩余名额选择预约。`;
           },
         },
         watch: {
@@ -2348,10 +2443,17 @@
             const title = typeof item === "string" ? item : item?.title;
             return ACTIVITY_TITLE_MAP[title] || title || "活动";
           },
+          activityCategoryLabel(category) {
+            return category || "活动";
+          },
           activitySummary(item, detail = false) {
             const title = typeof item === "string" ? item : item?.title;
             if (ACTIVITY_SUMMARY_MAP[title]) {
               return detail ? `${ACTIVITY_SUMMARY_MAP[title]} 登录后可继续完成报名。` : ACTIVITY_SUMMARY_MAP[title];
+            }
+            const description = typeof item === "string" ? "" : (item?.description || "").trim();
+            if (description) {
+              return detail ? description : this.shorten(description, 48);
             }
             return detail ? "该活动信息已同步到站内，建议先查看时间、地点与名额后再报名。" : "可查看时间、地点与剩余名额，登录后继续报名。";
           },
@@ -2371,6 +2473,13 @@
           },
           formatDateTime(value) {
             return value ? new Date(value).toLocaleString("zh-CN", { hour12: false }) : "";
+          },
+          todayDateString() {
+            return new Date().toLocaleDateString("sv-SE");
+          },
+          isMonday(value) {
+            if (!value) return false;
+            return new Date(`${value}T00:00:00`).getDay() === 1;
           },
           roleLabel(role) {
             return { visitor: "游客", admin: "管理员", volunteer: "志愿者" }[role] || role;
@@ -2521,6 +2630,12 @@
           },
           async loadSlots() {
             this.slots = await this.api("/visit-slots/");
+            const today = this.todayDateString();
+            if (!this.selectedDate) {
+              this.selectedDate = today;
+            } else if (!this.availableDates.includes(this.selectedDate) && !this.isMonday(this.selectedDate)) {
+              this.selectedDate = this.availableDates[0] || today;
+            }
           },
           async loadProfile() {
             this.profile = await this.api("/profile/");
@@ -2623,11 +2738,15 @@
             await this.loadAdminReservations();
           },
           async loadAdminReservations() {
-            const query = this.adminReservationDate ? `?date=${encodeURIComponent(this.adminReservationDate)}` : "";
+            const params = new URLSearchParams();
+            if (this.adminReservationDate) params.set("date", this.adminReservationDate);
+            if (this.adminReservationSlot) params.set("time_slot", this.adminReservationSlot);
+            const query = params.toString() ? `?${params.toString()}` : "";
             this.adminReservations = await this.api(`/admin/reservations/${query}`);
           },
           clearAdminReservationFilter() {
             this.adminReservationDate = "";
+            this.adminReservationSlot = "";
             this.loadAdminReservations();
           },
           cancelAdminForm() {
