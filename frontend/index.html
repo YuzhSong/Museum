@@ -2018,50 +2018,56 @@
           </template>
 
           <template v-else>
-            <div class="panel" v-if="adminVolunteerRoleApplications.length">
-              <h3>志愿者身份申请</h3>
-              <table style="margin-top: 18px">
-                <thead><tr><th>申请人</th><th>服务方向</th><th>申请说明</th><th>申请时间</th><th>操作</th></tr></thead>
-                <tbody>
-                  <tr v-for="app in adminVolunteerRoleApplications" :key="app.id">
-                    <td>{{ app.user.real_name || app.user.username }}</td>
-                    <td>{{ app.service_area || '未填写' }}</td>
-                    <td>{{ app.motivation || '未填写' }}</td>
-                    <td>{{ formatDateTime(app.applied_at) }}</td>
-                    <td>
-                      <div class="card-actions">
-                        <button class="pill-btn" @click="approveVolunteerRoleApplication(app.id)">通过</button>
-                        <button class="ghost-btn" @click="rejectVolunteerRoleApplication(app.id)">拒绝</button>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="panel" v-else>
-              <div class="empty-state">暂无待审批的志愿者身份申请。</div>
-            </div>
+            <div class="admin-grid">
+              <div class="panel">
+                <h3>志愿者身份申请</h3>
+                <div class="list-meta" style="margin: 4px 0 14px">{{ adminVolunteerRoleApplications.length }} 条待审批</div>
+                <table v-if="adminVolunteerRoleApplications.length">
+                  <thead><tr><th>申请人</th><th>服务方向</th><th>申请时间</th><th>操作</th></tr></thead>
+                  <tbody>
+                    <tr v-for="app in adminVolunteerRoleApplications" :key="app.id">
+                      <td>
+                        <strong>{{ app.user.real_name || app.user.username }}</strong>
+                        <div class="list-meta" style="font-size: 12px">{{ app.motivation || '未填写申请说明' }}</div>
+                      </td>
+                      <td>{{ app.service_area || '未填写' }}</td>
+                      <td>{{ formatDateTime(app.applied_at) }}</td>
+                      <td>
+                        <div class="card-actions">
+                          <button class="pill-btn" @click="approveVolunteerRoleApplication(app.id)">通过</button>
+                          <button class="ghost-btn" @click="rejectVolunteerRoleApplication(app.id)">拒绝</button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class="empty-state" v-else>暂无待审批的志愿者身份申请。</div>
+              </div>
 
-            <div class="panel" v-if="!adminApplications.length">
-              <div class="empty-state">暂无待审批的志愿者申请。</div>
+              <div class="panel">
+                <h3>活动参与申请</h3>
+                <div class="list-meta" style="margin: 4px 0 14px">{{ adminApplications.length }} 条待审批</div>
+                <table v-if="adminApplications.length">
+                  <thead><tr><th>志愿者</th><th>申请活动</th><th>申请时间</th><th>操作</th></tr></thead>
+                  <tbody>
+                    <tr v-for="app in adminApplications" :key="app.id">
+                      <td>
+                        <strong>{{ app.volunteer.real_name || app.volunteer.username }}</strong>
+                      </td>
+                      <td>{{ activityTitle(app.activity) }}</td>
+                      <td>{{ formatDateTime(app.applied_at) }}</td>
+                      <td>
+                        <div class="card-actions">
+                          <button class="pill-btn" @click="approveApplication(app.id)">通过</button>
+                          <button class="ghost-btn" @click="rejectApplication(app.id)">拒绝</button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class="empty-state" v-else>暂无待审批的活动参与申请。</div>
+              </div>
             </div>
-            <table v-else>
-              <caption style="caption-side: top; text-align: left; padding-bottom: 12px; color: var(--text); font-weight: 600;">活动参与申请</caption>
-              <thead><tr><th>志愿者</th><th>申请活动</th><th>申请时间</th><th>操作</th></tr></thead>
-              <tbody>
-                <tr v-for="app in adminApplications" :key="app.id">
-                  <td>{{ app.volunteer.real_name || app.volunteer.username }}</td>
-                  <td>{{ activityTitle(app.activity) }}</td>
-                  <td>{{ formatDateTime(app.applied_at) }}</td>
-                  <td>
-                    <div class="card-actions">
-                      <button class="pill-btn" @click="approveApplication(app.id)">通过</button>
-                      <button class="ghost-btn" @click="rejectApplication(app.id)">拒绝</button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
           </template>
         </section>
 
