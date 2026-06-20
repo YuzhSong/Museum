@@ -1,0 +1,3145 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>中国工艺美术馆</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+      :root {
+        --bg: #f4efe7;
+        --surface: #fffdf9;
+        --surface-2: #f6f0e7;
+        --surface-3: #efe7db;
+        --line: rgba(79, 55, 38, 0.12);
+        --line-strong: rgba(79, 55, 38, 0.22);
+        --text: #231815;
+        --muted: rgba(35, 24, 21, 0.72);
+        --muted-soft: rgba(35, 24, 21, 0.5);
+        --brand: #a61f24;
+        --gold: #c3a063;
+        --white: #ffffff;
+        --radius-sm: 12px;
+        --radius-md: 16px;
+        --radius-lg: 20px;
+        --header-height: 64px;
+        --shadow-soft: 0 20px 60px rgba(0, 0, 0, 0.26);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at top left, rgba(166, 31, 36, 0.08), transparent 28%),
+          radial-gradient(circle at 85% 10%, rgba(195, 160, 99, 0.1), transparent 20%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 18%),
+          var(--bg);
+        color: var(--text);
+        font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      a,
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+
+      img {
+        display: block;
+        width: 100%;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .serif,
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: "Noto Serif SC", "Songti SC", "STSong", "Source Han Serif SC", serif;
+        font-weight: 600;
+      }
+
+      .skip-link {
+        position: absolute;
+        left: 12px;
+        top: -40px;
+        background: var(--white);
+        color: #111;
+        padding: 10px 14px;
+        z-index: 100;
+      }
+
+      .skip-link:focus {
+        top: 12px;
+      }
+
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 60;
+        height: var(--header-height);
+        background: rgba(250, 246, 239, 0.92);
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .header-inner,
+      main,
+      .footer-inner {
+        width: min(1180px, calc(100% - 88px));
+        margin: 0 auto;
+      }
+
+      .header-inner {
+        height: 100%;
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) auto minmax(220px, 1fr);
+        align-items: center;
+        gap: 18px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .brand-mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: linear-gradient(145deg, rgba(179, 18, 23, 0.95), rgba(200, 169, 106, 0.8));
+        display: grid;
+        place-items: center;
+        color: #fff8f0;
+        font-size: 16px;
+        letter-spacing: 0.12em;
+      }
+
+      .brand-copy {
+        min-width: 0;
+      }
+
+      .brand-copy b,
+      .brand-copy span {
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .brand-copy b {
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+      }
+
+      .brand-copy span {
+        color: var(--muted-soft);
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+
+      .top-nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        min-width: 0;
+        flex-wrap: nowrap;
+        overflow: hidden;
+      }
+
+      .top-nav button,
+      .header-tools button,
+      .pill-btn,
+      .ghost-btn,
+      .chip-btn,
+      .link-btn {
+        border: 0;
+        background: transparent;
+        color: inherit;
+      }
+
+      .top-nav button {
+        min-height: 40px;
+        padding: 0 14px;
+        color: var(--muted);
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        position: relative;
+        white-space: nowrap;
+      }
+
+      .top-nav button.active,
+      .top-nav button:hover {
+        color: var(--brand);
+      }
+
+      .top-nav button.active::after {
+        content: "";
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 4px;
+        height: 1px;
+        background: var(--gold);
+      }
+
+      .header-tools {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: nowrap;
+      }
+
+      .mini-action {
+        min-height: 36px;
+        padding: 0 12px;
+        border-radius: 14px;
+        color: var(--muted);
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+
+      .mini-action.label {
+        background: rgba(255, 255, 255, 0.85);
+        border-color: var(--line);
+      }
+
+      .user-label {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+        padding: 0 14px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.85);
+        border: 1px solid var(--line);
+        color: var(--text);
+        font-size: 14px;
+        white-space: nowrap;
+      }
+
+      .ghost-btn,
+      .pill-btn,
+      .chip-btn,
+      .outline-btn {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 18px;
+        transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+      }
+
+      .pill-btn,
+      .ghost-btn,
+      .outline-btn,
+      .auth-switch button,
+      .tab-strip button {
+        border-radius: 14px;
+      }
+
+      .pill-btn {
+        background: var(--brand);
+        color: #fff;
+      }
+
+      .pill-btn.gold {
+        background: var(--gold);
+        color: #1b1308;
+      }
+
+      .ghost-btn,
+      .outline-btn {
+        border: 1px solid var(--line-strong);
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .chip-btn,
+      .date-chip {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.84);
+        color: var(--muted);
+        padding: 0 16px;
+        min-height: 38px;
+        white-space: nowrap;
+        border-radius: 999px;
+      }
+
+      .chip-btn.active,
+      .date-chip.active,
+      .auth-switch button.active {
+        background: rgba(179, 18, 23, 0.24);
+        border-color: rgba(200, 169, 106, 0.42);
+        color: var(--brand);
+      }
+
+      .pill-btn:hover,
+      .ghost-btn:hover,
+      .outline-btn:hover,
+      .chip-btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .link-btn {
+        color: var(--gold);
+        padding: 0;
+      }
+
+      main {
+        padding: 24px 0 72px;
+      }
+
+      .notice {
+        margin: 0 0 18px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid var(--line);
+        color: var(--text);
+      }
+
+      .notice.error {
+        background: rgba(179, 18, 23, 0.18);
+        border-color: rgba(179, 18, 23, 0.42);
+      }
+
+      .section {
+        margin-top: 72px;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .section-head h2 {
+        margin: 0;
+        font-size: clamp(30px, 4vw, 44px);
+        line-height: 1.08;
+      }
+
+      .section-head p,
+      .sub-copy,
+      .meta,
+      .list-meta,
+      .footer-note,
+      .muted {
+        color: var(--muted);
+      }
+
+      .section-head p,
+      .sub-copy {
+        margin: 8px 0 0;
+        max-width: 720px;
+        line-height: 1.75;
+      }
+
+      .hero {
+        position: relative;
+        min-height: calc(100vh - var(--header-height) - 24px);
+        border-radius: 28px;
+        overflow: hidden;
+        display: grid;
+        align-items: end;
+        padding: clamp(28px, 5vw, 56px);
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.72)),
+          radial-gradient(circle at 16% 22%, rgba(200, 169, 106, 0.18), transparent 22%),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.18)),
+          center/cover no-repeat;
+        box-shadow: var(--shadow-soft);
+      }
+
+      .hero::before,
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: auto auto 10% 4%;
+        width: 180px;
+        height: 180px;
+        border: 1px solid rgba(200, 169, 106, 0.16);
+        border-radius: 50%;
+        pointer-events: none;
+      }
+
+      .hero::after {
+        inset: 10% 8% auto auto;
+        width: 110px;
+        height: 110px;
+        border-radius: 18px;
+        transform: rotate(15deg);
+      }
+
+      .hero-layout {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.72fr);
+        gap: 28px;
+        width: 100%;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 18px;
+        color: rgba(255, 255, 255, 0.86);
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-size: 12px;
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 42px;
+        height: 1px;
+        background: rgba(200, 169, 106, 0.8);
+      }
+
+      .hero-copy h1 {
+        margin: 0;
+        max-width: 720px;
+        font-size: clamp(44px, 7vw, 82px);
+        line-height: 0.96;
+        color: #fffdf8;
+        text-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+      }
+
+      .hero-copy p {
+        margin: 20px 0 0;
+        max-width: 620px;
+        color: rgba(255, 255, 255, 0.82);
+        line-height: 1.85;
+        font-size: 16px;
+      }
+
+      .hero-actions,
+      .card-actions,
+      .sub-actions,
+      .filter-row,
+      .auth-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .hero-actions {
+        margin-top: 28px;
+      }
+
+      .hero-side {
+        display: grid;
+        align-content: end;
+        gap: 14px;
+      }
+
+      .glass-panel,
+      .card,
+      .auth-panel,
+      .panel,
+      .slot-item,
+      .record,
+      .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+      }
+
+      .glass-panel {
+        padding: 18px 18px 16px;
+        backdrop-filter: blur(12px);
+      }
+
+      .glass-panel b,
+      .stat-card strong,
+      .kpi strong {
+        display: block;
+        font-size: 18px;
+      }
+
+      .service-strip {
+        margin-top: 22px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .service-item {
+        min-height: 148px;
+        padding: 20px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(246, 240, 231, 0.92));
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.3s ease, border-color 0.3s ease;
+      }
+
+      .service-item:hover {
+        transform: translateY(-3px);
+        border-color: rgba(200, 169, 106, 0.3);
+      }
+
+      .service-item .meta {
+        font-size: 13px;
+      }
+
+      .service-item strong {
+        font-size: 20px;
+      }
+
+      .feature-layout,
+      .two-grid,
+      .three-grid,
+      .card-grid,
+      .detail-hero,
+      .admin-grid,
+      .kpi-grid {
+        display: grid;
+        gap: 20px;
+      }
+
+      .three-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .card-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .two-grid,
+      .detail-hero,
+      .admin-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .editorial-stack {
+        display: grid;
+        gap: 18px;
+      }
+
+      .card {
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .card.tall-card .card-image {
+        aspect-ratio: 1.05 / 1.2;
+      }
+
+      .card-image {
+        aspect-ratio: 1.35 / 1;
+        object-fit: cover;
+        transition: transform 0.35s ease;
+        border-radius: 14px 14px 0 0;
+      }
+
+      .card:hover .card-image,
+      .masonry-card:hover .masonry-image,
+      .detail-image:hover {
+        transform: scale(1.02);
+      }
+
+      .card-body,
+      .panel,
+      .slot-item,
+      .record,
+      .auth-panel,
+      .stat-card {
+        padding: 18px;
+      }
+
+      .card-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+
+      .card-body .card-actions {
+        margin-top: auto;
+      }
+
+      .activity-card .card-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+
+      .compact-card .card-body {
+        padding: 14px;
+      }
+
+      .compact-card .card-body h3 {
+        font-size: 18px;
+        line-height: 1.28;
+      }
+
+      .compact-card .card-body p {
+        font-size: 14px;
+        line-height: 1.65;
+      }
+
+      .card-body h3,
+      .panel h3,
+      .auth-panel h3 {
+        margin: 10px 0 10px;
+        font-size: 22px;
+        line-height: 1.16;
+      }
+
+      .card-body p,
+      .panel p,
+      .record p,
+      .auth-panel p,
+      .detail-copy p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.78;
+      }
+
+      .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: rgba(166, 31, 36, 0.08);
+        color: var(--brand);
+        font-size: 12px;
+        letter-spacing: 0.04em;
+      }
+
+      .stat-block {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 18px;
+      }
+
+      .stat-card span,
+      .kpi span {
+        color: var(--muted-soft);
+        display: block;
+        margin-top: 6px;
+      }
+
+      .collection-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 20px;
+      }
+
+      .filter-row {
+        overflow-x: auto;
+        padding-bottom: 6px;
+      }
+
+      .masonry {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .masonry-card {
+        overflow: hidden;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+      }
+
+      .masonry-image {
+        width: 100%;
+        object-fit: cover;
+        transition: transform 0.35s ease;
+        aspect-ratio: 1 / 1;
+      }
+
+      .masonry-copy {
+        padding: 10px 10px 12px;
+      }
+
+      .masonry-copy h3 {
+        margin: 6px 0 4px;
+        font-size: 14px;
+        line-height: 1.35;
+      }
+
+      .masonry-waterfall {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .masonry-waterfall .masonry-col {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .masonry-waterfall .masonry-image {
+        aspect-ratio: auto;
+      }
+
+      .masonry-waterfall .masonry-copy h3 {
+        font-size: 15px;
+        line-height: 1.4;
+      }
+
+      .masonry-copy p {
+        display: none;
+      }
+
+      .activity-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .activity-card {
+        display: grid;
+        grid-template-columns: 180px minmax(0, 1fr);
+        overflow: hidden;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+      }
+
+      .activity-card .card-image {
+        min-height: 180px;
+        height: 100%;
+        border-radius: 0;
+        aspect-ratio: auto;
+      }
+
+      .activity-card .card-body h3 {
+        font-size: 20px;
+      }
+
+      .activity-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      .activity-toolbar .filter-row {
+        gap: 10px;
+      }
+
+      .activity-card .card-foot {
+        margin-top: auto;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .reservation-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .reservation-toolbar .date-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .reservation-note {
+        margin-bottom: 14px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: var(--surface-2);
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .detail-inline {
+        margin-top: 12px;
+        padding: 14px;
+        border-radius: 14px;
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+      }
+
+      .detail-image {
+        min-height: 420px;
+        border-radius: 18px;
+        background: center/cover no-repeat;
+        transition: transform 0.35s ease;
+      }
+
+      .detail-copy {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 10px 0;
+      }
+
+      .detail-copy h2 {
+        margin: 0 0 14px;
+        font-size: clamp(34px, 4vw, 52px);
+        line-height: 1.04;
+      }
+
+      .crumbs {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 18px;
+        color: var(--muted);
+      }
+
+      .crumbs button {
+        color: var(--muted);
+        background: transparent;
+        border: 0;
+        padding: 0;
+      }
+
+      .slot-list,
+      .record-list {
+        display: grid;
+        gap: 14px;
+      }
+
+      .empty-state {
+        padding: 22px 18px;
+        border-radius: 16px;
+        border: 1px dashed var(--line-strong);
+        color: var(--muted);
+      }
+
+      .tab-strip {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .tab-strip {
+        margin-bottom: 18px;
+      }
+
+      .tab-strip button {
+        min-height: 42px;
+        padding: 0 16px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.88);
+        color: var(--muted);
+      }
+
+      .tab-strip button.active {
+        background: rgba(166, 31, 36, 0.1);
+        color: var(--brand);
+        border-color: rgba(200, 169, 106, 0.38);
+      }
+
+      .auth-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+        gap: 20px;
+      }
+
+      .auth-panel {
+        min-height: 520px;
+      }
+
+      .auth-cover {
+        position: relative;
+        overflow: hidden;
+        min-height: 520px;
+        border-radius: 20px;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.58)),
+          radial-gradient(circle at 15% 20%, rgba(200, 169, 106, 0.16), transparent 24%),
+          center/cover no-repeat;
+        padding: 26px;
+        display: flex;
+        flex-direction: column;
+        justify-content: end;
+        border: 1px solid var(--line);
+      }
+
+      .auth-cover h2 {
+        margin: 0 0 12px;
+        font-size: clamp(34px, 4vw, 56px);
+        max-width: 520px;
+        line-height: 1.02;
+        color: #fffdf8;
+        text-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+      }
+
+      .auth-cover p {
+        margin: 0;
+        max-width: 460px;
+        color: rgba(255, 255, 255, 0.82);
+        line-height: 1.82;
+      }
+
+      .auth-panel h3 {
+        margin-top: 16px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .volunteer-role-form {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        align-items: start;
+      }
+
+      .volunteer-role-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 14px;
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      input,
+      textarea,
+      select {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text);
+        padding: 13px 14px;
+      }
+
+      textarea {
+        min-height: 130px;
+        resize: vertical;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid var(--line);
+        overflow: hidden;
+        border-radius: 16px;
+      }
+
+      th,
+      td {
+        padding: 14px 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted-soft);
+        font-weight: 500;
+      }
+
+      td {
+        color: var(--muted);
+      }
+
+      .footer {
+        background: #f8f6f1;
+        color: #171717;
+        margin-top: 72px;
+      }
+
+      .footer-inner {
+        padding: 44px 0 36px;
+      }
+
+      .footer-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 1fr 1fr;
+        gap: 28px;
+      }
+
+      .footer h4 {
+        margin: 0 0 14px;
+        font-size: 18px;
+      }
+
+      .footer p,
+      .footer li,
+      .footer a {
+        color: rgba(23, 23, 23, 0.72);
+        line-height: 1.8;
+        text-decoration: none;
+      }
+
+      .footer ul {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+
+      .footer-bottom {
+        margin-top: 26px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(23, 23, 23, 0.12);
+        color: rgba(23, 23, 23, 0.6);
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      [v-cloak] {
+        display: none;
+      }
+
+      @media (max-width: 1180px) {
+        .header-inner {
+          grid-template-columns: 1fr auto;
+          grid-template-areas:
+            "brand tools"
+            "nav nav";
+          height: auto;
+          padding: 10px 0;
+        }
+
+        .brand {
+          grid-area: brand;
+        }
+
+        .header-tools {
+          grid-area: tools;
+        }
+
+        .top-nav {
+          grid-area: nav;
+          justify-content: flex-start;
+          overflow-x: auto;
+          padding-bottom: 4px;
+        }
+
+        .hero-layout,
+        .feature-layout,
+        .auth-shell,
+        .detail-hero,
+        .two-grid,
+        .admin-grid,
+        .footer-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .service-strip,
+        .three-grid,
+        .card-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .masonry {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .masonry-waterfall .masonry-col:nth-child(n+4) {
+          display: none;
+        }
+
+        .activity-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .header-inner,
+        main,
+        .footer-inner {
+          width: min(100%, calc(100% - 24px));
+        }
+
+        .hero {
+          min-height: 82vh;
+          border-radius: 20px;
+          padding: 22px;
+        }
+
+        .hero-copy h1 {
+          font-size: clamp(34px, 10vw, 52px);
+        }
+
+        .section {
+          margin-top: 56px;
+        }
+
+        .service-strip,
+        .three-grid,
+        .card-grid,
+        .form-grid,
+        .volunteer-role-form,
+        .stat-block,
+        .kpi-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .masonry {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .masonry-waterfall .masonry-col:nth-child(n+3) {
+          display: none;
+        }
+
+        .activity-card {
+          grid-template-columns: 1fr;
+        }
+
+        .detail-image,
+        .auth-cover,
+        .auth-panel {
+          min-height: 320px;
+        }
+
+        .brand-copy span {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳转到正文</a>
+    <div id="app" v-cloak>
+      <header class="site-header">
+        <div class="header-inner">
+          <div class="brand">
+            <div class="brand-mark serif">艺</div>
+            <div class="brand-copy">
+              <b>中国工艺美术馆</b>
+              <span>中国工艺美术馆预约与导览服务平台</span>
+            </div>
+          </div>
+
+          <nav class="top-nav" aria-label="主导航">
+            <button :class="{ active: navActive('home') }" @click="goHomeSection('hero')">首页</button>
+            <button :class="{ active: navActive('exhibitions') }" @click="go('exhibitions')">展览</button>
+            <button :class="{ active: navActive('collections') }" @click="go('collections')">藏品</button>
+            <button :class="{ active: navActive('activities') }" @click="go('activities')">活动</button>
+            <button :class="{ active: navActive('guides') }" @click="go('guides')">导览</button>
+            <button :class="{ active: navActive('reservation') }" @click="goReservation()">预约</button>
+            <button :class="{ active: navActive('me') }" @click="goMe()">我的</button>
+          </nav>
+
+          <div class="header-tools">
+            <span class="user-label" v-if="user">{{ user.username }} · {{ roleLabel(user.role) }}</span>
+            <button class="mini-action" v-if="isAdmin" @click="go('admin')">后台</button>
+            <button class="mini-action" v-if="isVolunteer" @click="go('volunteer')">工作台</button>
+            <button class="ghost-btn" v-if="user" @click="logout">退出</button>
+            <button class="pill-btn" v-else @click="openAuth('login')">登录/注册</button>
+          </div>
+        </div>
+      </header>
+
+      <main id="main-content">
+        <div v-if="notice.text" class="notice" :class="{ error: notice.type === 'error' }">{{ notice.text }}</div>
+
+        <section v-if="route.view === 'home'">
+          <section
+            class="hero"
+            id="hero"
+            :style="{ backgroundImage: heroBackdrop ? `linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.72)), radial-gradient(circle at 16% 22%, rgba(200,169,106,0.18), transparent 22%), linear-gradient(90deg, rgba(0,0,0,0.72), rgba(0,0,0,0.18)), url('${heroBackdrop}')` : '' }"
+          >
+            <div class="hero-layout">
+              <div class="hero-copy">
+                <div class="eyebrow">正在展出</div>
+                <h1>{{ featuredExhibition ? exhibitionTitle(featuredExhibition) : '中国工艺美术与非遗之美' }}</h1>
+                <p>
+                  走进工艺之美，观看展览、浏览藏品、了解公共活动与馆内导览。
+                  登录后可预约参观、报名活动，并在“我的”中查看个人记录。
+                </p>
+                <div class="hero-actions">
+                  <button class="pill-btn gold" @click="goReservation()">预约参观</button>
+                  <button class="ghost-btn" @click="go('exhibitions')">查看展览</button>
+                  <button class="ghost-btn" @click="go('collections')">馆藏精选</button>
+                </div>
+              </div>
+
+              <div class="hero-side">
+                <div class="glass-panel">
+                  <div class="meta">开放信息</div>
+                  <b>09:00 开馆 · 16:00 停止入馆 · 17:00 闭馆</b>
+                </div>
+                <div class="glass-panel" v-if="featuredExhibition">
+                  <div class="meta">{{ locationLabel(featuredExhibition.location) }}</div>
+                  <b>{{ featuredExhibition.start_date }} 至 {{ featuredExhibition.end_date }}</b>
+                </div>
+                <div class="glass-panel">
+                  <div class="meta">馆内服务</div>
+                  <b>{{ displayExhibitions.length }} 个展览 · {{ displayCollections.length }} 件藏品 · {{ displayActivities.length }} 场活动</b>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="service-strip">
+            <button class="service-item" @click="goReservation()">
+              <div>
+                <div class="meta">参观服务</div>
+                <strong>预约参观</strong>
+              </div>
+              <span class="sub-copy">选择日期与时段，提前安排你的到馆行程。</span>
+            </button>
+            <button class="service-item" @click="go('guides')">
+              <div>
+                <div class="meta">馆内路线</div>
+                <strong>馆内导览</strong>
+              </div>
+              <span class="sub-copy">从重点展区、推荐路线和文字说明开始参观。</span>
+            </button>
+            <button class="service-item" @click="go('activities')">
+              <div>
+                <div class="meta">公共活动</div>
+                <strong>活动信息</strong>
+              </div>
+              <span class="sub-copy">查看近期展演、讲座与公共教育活动。</span>
+            </button>
+            <button class="service-item" @click="goMe()">
+              <div>
+                <div class="meta">个人中心</div>
+                <strong>我的行程</strong>
+              </div>
+              <span class="sub-copy">登录后查看预约记录、活动报名与个人资料。</span>
+            </button>
+          </section>
+
+          <section class="section">
+            <div class="section-head">
+              <div>
+                <h2>正在展出</h2>
+                <p>以下内容同步自馆方公开信息，按展览详情、展期与展厅位置整理。</p>
+              </div>
+              <button class="ghost-btn" @click="go('exhibitions')">全部展览</button>
+            </div>
+
+            <div class="card-grid" v-if="displayExhibitions.length">
+              <article class="card compact-card" v-for="item in displayExhibitions.slice(0, 4)" :key="item.id">
+                <img class="card-image" :src="imageFor(item.cover_image_url)" :alt="item.title" />
+                <div class="card-body">
+                  <div class="meta">{{ locationLabel(item.location) }} · {{ item.start_date }} - {{ item.end_date }}</div>
+                  <h3>{{ exhibitionTitle(item) }}</h3>
+                  <p>{{ exhibitionSummary(item) }}</p>
+                  <div class="card-actions">
+                    <button class="ghost-btn" @click="openExhibition(item.id)">查看展览</button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-head">
+              <div>
+                <h2>馆藏精选</h2>
+                <p>藏品按材质门类整理，采用更接近展墙浏览的拼贴式呈现。</p>
+              </div>
+              <button class="ghost-btn" @click="go('collections')">进入馆藏</button>
+            </div>
+
+            <div class="filter-row">
+              <button
+                class="chip-btn"
+                :class="{ active: activeCollectionCategory === '全部' }"
+                @click="activeCollectionCategory = '全部'"
+              >
+                全部
+              </button>
+              <button
+                v-for="category in collectionCategories"
+                :key="category"
+                class="chip-btn"
+                :class="{ active: activeCollectionCategory === category }"
+                @click="activeCollectionCategory = category"
+              >
+                {{ categoryLabel(category) }}
+              </button>
+            </div>
+
+            <div class="masonry" style="margin-top: 18px">
+              <article
+                class="masonry-card"
+                v-for="(item, index) in homeCollections"
+                :key="item.id"
+              >
+                <img class="masonry-image" :src="imageFor(item.image_url)" :alt="item.name" />
+                <div class="masonry-copy">
+                  <div class="meta">{{ categoryLabel(item.category) }}</div>
+                  <h3>{{ collectionTitle(item, index) }}</h3>
+                  <div class="card-actions" style="margin-top: 8px">
+                    <button class="link-btn" @click="openCollection(item.id)">查看藏品</button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-head">
+              <div>
+                <h2>近期活动</h2>
+                <p>浏览公共活动与展演安排，进入详情页后可进一步报名。</p>
+              </div>
+              <button class="ghost-btn" @click="go('activities')">活动列表</button>
+            </div>
+            <div class="activity-grid">
+              <article class="activity-card" v-for="item in latestActivities" :key="item.id">
+                <img class="card-image" :src="imageFor(item.cover_image_url)" :alt="item.title" />
+                <div class="card-body">
+                  <div class="meta">{{ activityMetaLabel(item) }}</div>
+                  <h3>{{ activityTitle(item) }}</h3>
+                  <p>{{ activitySummary(item) }}</p>
+                  <div class="card-actions" style="margin-top: 16px">
+                    <button class="pill-btn" @click="openActivity(item.id)">查看详情</button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+        </section>
+
+        <section v-else-if="route.view === 'exhibitions'" class="section">
+          <div class="section-head">
+            <div>
+              <h2>展览</h2>
+              <p>馆内公开展览信息、展期与展厅位置汇总。</p>
+            </div>
+          </div>
+          <div class="card-grid">
+            <article class="card compact-card" v-for="item in displayExhibitions" :key="item.id">
+              <img class="card-image" :src="imageFor(item.cover_image_url)" :alt="item.title" />
+              <div class="card-body">
+                <div class="meta">{{ locationLabel(item.location) }} · {{ item.start_date }} - {{ item.end_date }}</div>
+                <h3>{{ exhibitionTitle(item) }}</h3>
+                <p>{{ exhibitionSummary(item) }}</p>
+                <div class="card-actions">
+                  <button class="pill-btn" @click="openExhibition(item.id)">查看详情</button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section v-else-if="route.view === 'exhibition-detail'" class="section">
+          <div class="crumbs">
+            <button @click="go('home')">首页</button>
+            <span>/</span>
+            <button @click="go('exhibitions')">展览</button>
+            <span>/</span>
+            <span>{{ selectedExhibition ? exhibitionTitle(selectedExhibition) : '展览详情' }}</span>
+          </div>
+
+          <div class="detail-hero" v-if="selectedExhibition">
+            <div class="detail-image" :style="{ backgroundImage: `url('${imageFor(selectedExhibition.cover_image_url)}')` }"></div>
+            <div class="detail-copy">
+              <div class="badge-row">
+                <span class="badge">{{ locationLabel(selectedExhibition.location) }}</span>
+                <span class="badge">{{ selectedExhibition.start_date }} - {{ selectedExhibition.end_date }}</span>
+              </div>
+              <h2>{{ exhibitionTitle(selectedExhibition) }}</h2>
+              <p>{{ exhibitionSummary(selectedExhibition, true) }}</p>
+              <div class="sub-actions" style="margin-top: 18px">
+                <button class="pill-btn gold" @click="goReservation()">预约参观</button>
+                <button class="ghost-btn" @click="go('guides')">查看导览</button>
+              </div>
+            </div>
+          </div>
+
+          <section class="section" v-if="selectedExhibition && selectedExhibition.collections && selectedExhibition.collections.length">
+            <div class="section-head">
+              <div>
+                <h2>相关藏品</h2>
+                <p>展览中关联展示的部分藏品。</p>
+              </div>
+            </div>
+            <div class="masonry">
+              <article class="masonry-card" v-for="(item, index) in selectedExhibition.collections" :key="item.id">
+                <img class="masonry-image" :src="imageFor(item.image_url)" :alt="item.name" />
+                <div class="masonry-copy">
+                  <div class="meta">{{ categoryLabel(item.category) }}</div>
+                  <h3>{{ collectionTitle(item, index) }}</h3>
+                  <div class="card-actions" style="margin-top: 8px">
+                    <button class="link-btn" @click="openCollection(item.id)">查看藏品</button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+        </section>
+
+        <section v-else-if="route.view === 'collections'" class="section">
+          <div class="section-head">
+            <div>
+              <h2>藏品</h2>
+              <p>按门类浏览馆藏内容，适合从整体上感受工艺材料与造型语言。</p>
+            </div>
+          </div>
+
+          <div class="collection-toolbar">
+            <div class="filter-row">
+              <button
+                class="chip-btn"
+                :class="{ active: activeCollectionCategory === '全部' }"
+                @click="activeCollectionCategory = '全部'"
+              >
+                全部
+              </button>
+              <button
+                v-for="category in collectionCategories"
+                :key="category"
+                class="chip-btn"
+                :class="{ active: activeCollectionCategory === category }"
+                @click="activeCollectionCategory = category"
+              >
+                {{ categoryLabel(category) }}
+              </button>
+            </div>
+            <div class="meta">{{ filteredCollections.length }} 件公开藏品</div>
+          </div>
+
+          <div class="masonry-waterfall">
+            <div class="masonry-col" v-for="(col, colIdx) in waterfallColumns" :key="colIdx">
+              <article
+                class="masonry-card"
+                v-for="(item, index) in col"
+                :key="item.id"
+              >
+                <img class="masonry-image" :src="imageFor(item.image_url)" :alt="item.name" loading="lazy" />
+                <div class="masonry-copy">
+                  <div class="meta">{{ categoryLabel(item.category) }}</div>
+                  <h3>{{ collectionTitle(item) }}</h3>
+                  <div class="card-actions" style="margin-top: 8px">
+                    <button class="link-btn" @click="openCollection(item.id)">查看详情</button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section v-else-if="route.view === 'collection-detail'" class="section">
+          <div class="crumbs">
+            <button @click="go('home')">首页</button>
+            <span>/</span>
+            <button @click="go('collections')">藏品</button>
+            <span>/</span>
+            <span>{{ selectedCollection ? collectionTitle(selectedCollection) : '藏品详情' }}</span>
+          </div>
+
+          <div class="detail-hero" v-if="selectedCollection">
+            <div class="detail-image" :style="{ backgroundImage: `url('${imageFor(selectedCollection.image_url)}')` }"></div>
+            <div class="detail-copy">
+              <div class="badge-row">
+                <span class="badge">{{ categoryLabel(selectedCollection.category) }}</span>
+                <span class="badge">{{ selectedCollection.dynasty }}</span>
+                <span class="badge">{{ exhibitionTitle({ title: selectedCollection.exhibition_title }) }}</span>
+              </div>
+              <h2>{{ collectionTitle(selectedCollection) }}</h2>
+              <p>{{ collectionSummary(selectedCollection, true) }}</p>
+              <div class="sub-actions" style="margin-top: 18px">
+                <button class="ghost-btn" @click="openExhibition(selectedCollection.exhibition_id)">返回所属展览</button>
+                <button class="pill-btn gold" @click="goReservation()">预约参观</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section v-else-if="route.view === 'activities'" class="section">
+          <div class="section-head">
+            <div>
+              <h2>活动</h2>
+              <p>按“非遗体验”和“讲解活动”浏览馆内活动内容。</p>
+            </div>
+          </div>
+          <div class="activity-toolbar">
+            <div class="filter-row">
+              <button
+                class="chip-btn"
+                :class="{ active: activeActivityCategory === '全部' }"
+                @click="activeActivityCategory = '全部'"
+              >
+                全部
+              </button>
+              <button
+                v-for="category in activityCategories"
+                :key="category"
+                class="chip-btn"
+                :class="{ active: activeActivityCategory === category }"
+                @click="activeActivityCategory = category"
+              >
+                {{ activityCategoryLabel(category) }}
+              </button>
+            </div>
+            <div class="meta">{{ filteredActivities.length }} 项活动</div>
+          </div>
+          <div class="activity-grid">
+              <article class="activity-card" v-for="item in filteredActivities" :key="item.id">
+              <img class="card-image" :src="imageFor(item.cover_image_url)" :alt="item.title" />
+              <div class="card-body">
+                <div class="meta">{{ activityMetaLabel(item) }}</div>
+                <h3>{{ activityTitle(item) }}</h3>
+                <p>{{ activitySummary(item, true) }}</p>
+                <div class="card-foot">
+                  <button class="pill-btn" @click="openActivity(item.id)">查看详情</button>
+                  <div class="list-meta">已报名 {{ item.registered_count }} / {{ item.capacity }}</div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section v-else-if="route.view === 'activity-detail'" class="section">
+          <div class="crumbs">
+            <button @click="go('home')">首页</button>
+            <span>/</span>
+            <button @click="go('activities')">活动</button>
+            <span>/</span>
+            <span>{{ selectedActivity ? activityTitle(selectedActivity) : '活动详情' }}</span>
+          </div>
+
+          <div class="detail-hero" v-if="selectedActivity">
+            <div class="detail-image" :style="{ backgroundImage: `url('${imageFor(selectedActivity.cover_image_url)}')` }"></div>
+            <div class="detail-copy">
+              <div class="badge-row">
+                <span class="badge" v-if="activityScheduleLabel(selectedActivity)">{{ activityScheduleLabel(selectedActivity) }}</span>
+                <span class="badge">{{ locationLabel(selectedActivity.location) }}</span>
+                <span class="badge" v-if="selectedActivity.category">{{ activityCategoryLabel(selectedActivity.category) }}</span>
+                <span class="badge">剩余 {{ selectedActivity.available_count }}</span>
+              </div>
+              <h2>{{ activityTitle(selectedActivity) }}</h2>
+              <p>{{ activitySummary(selectedActivity, true) }}</p>
+              <p style="margin-top: 12px"><strong style="color: var(--text)">适合人群：</strong>{{ selectedActivity.target_audience || '公众观众' }}</p>
+              <p style="margin-top: 12px"><strong style="color: var(--text)">材料准备：</strong>{{ selectedActivity.materials || '现场统一提供。' }}</p>
+              <p style="margin-top: 12px"><strong style="color: var(--text)">执行提示：</strong>{{ selectedActivity.preparation_note || '请按开始时间提前到场。' }}</p>
+              <div class="sub-actions" style="margin-top: 18px">
+                <button
+                  class="pill-btn"
+                  :disabled="!isLoggedIn || selectedActivity.available_count <= 0 || isCurrentActivityRegistered"
+                  @click="registerActivity(selectedActivity.id)"
+                >
+                  {{ isCurrentActivityRegistered ? '已报名' : '立即报名' }}
+                </button>
+                <button class="ghost-btn" v-if="!isLoggedIn" @click="openAuth('login')">登录后报名</button>
+                <span class="meta" v-else-if="isCurrentActivityRegistered" style="display: flex; align-items: center; gap: 6px;">✅ 你已成功报名该活动，可在「我的」中查看。</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section v-else-if="route.view === 'guides'" class="section">
+          <div class="section-head">
+            <div>
+              <h2>导览</h2>
+              <p>展厅路线、文字说明与展览关联导览信息。</p>
+            </div>
+          </div>
+          <div class="three-grid">
+            <article class="card" v-for="item in guides" :key="item.id">
+              <img class="card-image" :src="imageFor(item.map_image_url)" :alt="item.hall_name" />
+              <div class="card-body">
+                <div class="meta">{{ item.exhibition_title ? exhibitionTitle({ title: item.exhibition_title }) : '公共导览信息' }}</div>
+                <h3>{{ item.hall_name }}</h3>
+                <p>{{ shorten(item.route_description, 100) }}</p>
+                <div class="card-actions">
+                  <button class="ghost-btn" @click="openGuide(item.id)">查看导览</button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section v-else-if="route.view === 'guide-detail'" class="section">
+          <div class="crumbs">
+            <button @click="go('home')">首页</button>
+            <span>/</span>
+            <button @click="go('guides')">导览</button>
+            <span>/</span>
+            <span>{{ selectedGuide ? selectedGuide.hall_name : '导览详情' }}</span>
+          </div>
+
+          <div class="detail-hero" v-if="selectedGuide">
+            <div class="detail-image" :style="{ backgroundImage: `url('${imageFor(selectedGuide.map_image_url)}')` }"></div>
+            <div class="detail-copy">
+              <div class="badge-row">
+                <span class="badge">{{ selectedGuide.hall_name }}</span>
+                <span class="badge" v-if="selectedGuide.exhibition_title">{{ exhibitionTitle({ title: selectedGuide.exhibition_title }) }}</span>
+              </div>
+              <h2>推荐参观路线</h2>
+              <p><strong style="color: var(--text)">路线：</strong>{{ selectedGuide.route_description }}</p>
+              <p style="margin-top: 12px"><strong style="color: var(--text)">导览说明：</strong>{{ selectedGuide.text_guide }}</p>
+              <div class="sub-actions" style="margin-top: 18px">
+                <button class="ghost-btn" v-if="selectedGuide.exhibition_id" @click="openExhibition(selectedGuide.exhibition_id)">查看关联展览</button>
+                <button class="pill-btn gold" @click="goReservation()">预约参观</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section v-else-if="route.view === 'reservation'" class="section">
+          <div class="section-head">
+            <div>
+              <h2>预约参观</h2>
+              <p>默认展示当天可预约时段；可通过日历切换日期，周一闭馆。</p>
+            </div>
+          </div>
+          <div class="two-grid">
+            <div class="panel">
+              <div class="reservation-toolbar">
+                <label class="date-label">
+                  <span style="font-size: 18px;">📅</span>
+                  <input
+                    type="date"
+                    v-model="selectedDate"
+                    :min="todayDateString()"
+                    style="border-radius: 14px; border: 1px solid var(--line); padding: 10px 14px; background: rgba(255,255,255,0.88); color: var(--text);"
+                  />
+                </label>
+                <div class="meta">开放时段：09-11、11-13、13-15、15-17</div>
+              </div>
+              <div class="reservation-note">{{ selectedDateSummary }}</div>
+
+              <div class="slot-list" v-if="filteredSlots.length">
+                <div class="slot-item" v-for="slot in filteredSlots" :key="slot.id">
+                  <strong>{{ slot.visit_date }} {{ slot.time_slot }}</strong>
+                  <div class="list-meta">总名额 {{ slot.capacity }} · 已预约 {{ slot.booked_count }} · 剩余 {{ slot.available_count }}</div>
+                  <div class="card-actions" style="margin-top: 14px">
+                    <button class="pill-btn" :disabled="!canReserveSlot(slot)" @click="reserve(slot.id)">{{ reservationButtonLabel(slot) }}</button>
+                    <button class="ghost-btn" v-if="!isLoggedIn" @click="openAuth('login')">登录后预约</button>
+                  </div>
+                </div>
+              </div>
+              <div class="empty-state" v-else>当前没有可预约场次。</div>
+            </div>
+
+            <div class="panel">
+              <h3>预约记录</h3>
+              <p class="muted" v-if="!isLoggedIn">登录后可在此查看个人预约、取消未过期行程。</p>
+              <div v-else class="record-list">
+                <div class="record" v-for="item in reservations" :key="item.id">
+                  <strong>{{ item.slot.visit_date }} {{ item.slot.time_slot }}</strong>
+                  <div class="list-meta">状态：{{ reservationStatusLabel(item.status) }} · 创建时间：{{ formatDateTime(item.created_at) }}</div>
+                  <div class="sub-actions" style="margin-top: 12px">
+                    <button class="ghost-btn" v-if="item.can_cancel" @click="cancelReservation(item.id)">取消预约</button>
+                  </div>
+                </div>
+                <div v-if="!reservations.length" class="empty-state">还没有预约记录。</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section v-else-if="route.view === 'account'" class="section">
+          <div class="auth-shell">
+            <div
+              class="auth-cover"
+              :style="{ backgroundImage: authBackdrop ? `linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.74)), radial-gradient(circle at 15% 20%, rgba(200,169,106,0.16), transparent 24%), url('${authBackdrop}')` : '' }"
+            >
+              <div class="eyebrow">账号入口</div>
+              <h2>{{ authMode === 'login' ? '登录后开启你的参观行程' : '注册一个新账号，开始预约参观' }}</h2>
+              <p>登录后可预约参观、报名活动、查看个人记录。管理员与志愿者账号登录后会自动进入对应入口。</p>
+            </div>
+
+            <div class="auth-panel">
+              <form v-if="authMode === 'login'" @submit.prevent="login">
+                <h3>账号登录</h3>
+                <p class="sub-copy">输入用户名与密码后进入个人中心。</p>
+                <div class="form-grid" style="margin-top: 18px">
+                  <label>用户名<input v-model.trim="loginForm.username" required /></label>
+                  <label>密码<input v-model="loginForm.password" type="password" required /></label>
+                </div>
+                <div class="auth-actions" style="margin-top: 18px">
+                  <button class="pill-btn" type="submit">登录</button>
+                  <button class="ghost-btn" type="button" @click="authMode = 'register'">没有账号，去注册</button>
+                </div>
+                <p class="footer-note" style="margin-top: 20px">
+                  演示账号：admin / admin123，visitor / visitor123，volunteer / volunteer123
+                </p>
+              </form>
+
+              <form v-else @submit.prevent="register">
+                <h3>游客注册</h3>
+                <p class="sub-copy">创建账号后将自动登录，可继续预约参观或报名活动。</p>
+                <div class="form-grid" style="margin-top: 18px">
+                  <label>用户名<input v-model.trim="registerForm.username" required /></label>
+                  <label>密码<input v-model="registerForm.password" type="password" required /></label>
+                  <label>手机号<input v-model.trim="registerForm.phone" /></label>
+                  <label>邮箱<input v-model.trim="registerForm.email" type="email" /></label>
+                </div>
+                <label style="margin-top: 14px">姓名<input v-model.trim="registerForm.real_name" /></label>
+                <div class="auth-actions" style="margin-top: 18px">
+                  <button class="pill-btn gold" type="submit">创建账号</button>
+                  <button class="ghost-btn" type="button" @click="authMode = 'login'">已有账号，去登录</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section v-else-if="route.view === 'me'" class="section">
+          <div class="section-head">
+            <div>
+              <h2>我的</h2>
+              <p>查看个人资料、预约记录与活动报名。</p>
+            </div>
+          </div>
+
+          <div v-if="!isLoggedIn" class="panel">
+            <h3>需要先登录或注册</h3>
+            <p>登录后可查看预约记录、活动报名与个人信息。</p>
+            <div class="sub-actions" style="margin-top: 16px">
+              <button class="pill-btn" @click="openAuth('login')">去登录</button>
+              <button class="ghost-btn" @click="openAuth('register')">去注册</button>
+            </div>
+          </div>
+
+          <template v-else>
+            <div class="tab-strip">
+              <button :class="{ active: myTab === 'profile' }" @click="myTab = 'profile'">个人资料</button>
+              <button :class="{ active: myTab === 'reservations' }" @click="myTab = 'reservations'">我的预约</button>
+              <button :class="{ active: myTab === 'activities' }" @click="myTab = 'activities'">活动报名</button>
+            </div>
+
+            <div class="panel" v-if="myTab === 'profile' && profile">
+              <div class="kpi-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr))">
+                <div class="stat-card"><strong>{{ profile.username }}</strong><span>用户名</span></div>
+                <div class="stat-card"><strong>{{ roleLabel(profile.role) }}</strong><span>角色</span></div>
+                <div class="stat-card"><strong>{{ profile.phone || '未填写' }}</strong><span>手机号</span></div>
+                <div class="stat-card"><strong>{{ profile.email || '未填写' }}</strong><span>邮箱</span></div>
+              </div>
+              <div class="detail-inline" v-if="isVisitor" style="margin-top: 18px">
+                <h3 style="margin: 0 0 10px">申请成为志愿者</h3>
+                <p class="muted" v-if="!volunteerRoleApplication">提交申请后，管理员审核通过即可升级为志愿者账号并进入工作台。</p>
+                <p class="muted" v-else-if="volunteerRoleApplication.status === 'pending'">当前申请正在审批中；如需补充说明，可直接修改下方内容并重新提交。</p>
+                <p class="muted" v-else-if="volunteerRoleApplication.status === 'rejected'">当前申请未通过，请补充信息后重新提交。</p>
+                <div v-if="volunteerRoleApplication" class="record" style="margin-top: 12px; padding: 16px">
+                  <strong>当前申请状态：{{ applicationStatusLabel(volunteerRoleApplication.status) }}</strong>
+                  <div class="list-meta" style="margin-top: 8px">服务方向：{{ volunteerRoleApplication.service_area || '未填写' }}</div>
+                  <div class="list-meta" style="margin-top: 8px">申请时间：{{ formatDateTime(volunteerRoleApplication.applied_at) }}</div>
+                  <p style="margin-top: 10px">{{ volunteerRoleApplication.motivation || '未填写申请说明。' }}</p>
+                </div>
+                <div class="volunteer-role-form" style="margin-top: 16px">
+                  <label>意向服务方向<input v-model.trim="volunteerRoleForm.service_area" placeholder="如：社教活动、展厅讲解" /></label>
+                  <label>申请说明<textarea v-model.trim="volunteerRoleForm.motivation" placeholder="请说明你的相关经验、可服务时间或申请理由"></textarea></label>
+                </div>
+                <div class="volunteer-role-actions">
+                  <button class="pill-btn" @click="submitVolunteerRoleApplication">{{ volunteerRoleButtonLabel }}</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="record-list" v-else-if="myTab === 'reservations'">
+              <div class="record" v-for="item in reservations" :key="item.id">
+                <strong>{{ item.slot.visit_date }} {{ item.slot.time_slot }}</strong>
+                <div class="list-meta">状态：{{ reservationStatusLabel(item.status) }} · 创建时间：{{ formatDateTime(item.created_at) }}</div>
+                <div class="sub-actions" style="margin-top: 12px">
+                  <button class="ghost-btn" @click="toggleReservationDetail(item.id)">查看详情</button>
+                  <button class="ghost-btn" v-if="item.can_cancel" @click="cancelReservation(item.id)">取消预约</button>
+                </div>
+                <div class="detail-inline" v-if="expandedReservationId === item.id">
+                  <p>预约场次：{{ item.slot.visit_date }} {{ item.slot.time_slot }}</p>
+                  <p style="margin-top: 8px">入馆提示：请提前到馆，凭预约信息在开放时段内入馆；如需调整，请在开始前取消预约。</p>
+                </div>
+              </div>
+              <div class="empty-state" v-if="!reservations.length">还没有预约记录。</div>
+            </div>
+
+            <div class="record-list" v-else>
+              <div class="record" v-for="item in activityRegistrations" :key="item.id">
+                <strong>{{ activityTitle(item.activity) }}</strong>
+                <div class="list-meta">{{ activityMetaLabel(item.activity) }}</div>
+                <div class="list-meta">状态：{{ activityStatusLabel(item.status) }}</div>
+                <div class="sub-actions" style="margin-top: 12px">
+                  <button class="ghost-btn" @click="openActivity(item.activity.id)">查看详情</button>
+                  <button class="ghost-btn" @click="toggleRegistrationDetail(item.id)">报名须知</button>
+                </div>
+                <div class="detail-inline" v-if="expandedRegistrationId === item.id">
+                  <p>适合人群：{{ item.activity.target_audience || '公众观众' }}</p>
+                  <p style="margin-top: 8px">材料准备：{{ item.activity.materials || '现场统一提供。' }}</p>
+                  <p style="margin-top: 8px">现场提示：{{ item.activity.preparation_note || '请按活动开始时间提前到场。' }}</p>
+                </div>
+              </div>
+              <div class="empty-state" v-if="!activityRegistrations.length">还没有活动报名记录。</div>
+            </div>
+          </template>
+        </section>
+
+        <section v-else-if="route.view === 'admin'" class="section">
+          <div class="section-head">
+            <div>
+              <h2>管理后台</h2>
+              <p>维护展览、藏品、活动、导览与预约数据。</p>
+            </div>
+          </div>
+
+          <div class="tab-strip">
+            <button :class="{ active: adminTab === 'exhibitions' }" @click="adminTab = 'exhibitions'">展览</button>
+            <button :class="{ active: adminTab === 'collections' }" @click="adminTab = 'collections'">藏品</button>
+            <button :class="{ active: adminTab === 'activities' }" @click="adminTab = 'activities'">活动</button>
+            <button :class="{ active: adminTab === 'guides' }" @click="adminTab = 'guides'">导览</button>
+            <button :class="{ active: adminTab === 'reservations' }" @click="adminTab = 'reservations'">预约数据</button>
+            <button :class="{ active: adminTab === 'applications' }" @click="adminTab = 'applications'">申请审批</button>
+          </div>
+
+          <template v-if="adminTab === 'exhibitions'">
+            <div class="panel" v-if="adminFormVisible">
+              <h3>{{ adminExhibition.id ? '编辑展览' : '新建展览' }}</h3>
+              <div class="form-grid">
+                <label>展览名称<input v-model="adminExhibition.title" /></label>
+                <label>展厅位置<input v-model="adminExhibition.location" /></label>
+                <label>开始日期<input v-model="adminExhibition.start_date" type="date" /></label>
+                <label>结束日期<input v-model="adminExhibition.end_date" type="date" /></label>
+                <label>状态<select v-model="adminExhibition.status"><option value="published">已发布</option><option value="draft">草稿</option><option value="closed">已下架</option></select></label>
+                <label>封面图 URL<input v-model.trim="adminExhibition.cover_image_url" /></label>
+              </div>
+              <label style="margin-top: 14px">展览简介<textarea v-model="adminExhibition.description"></textarea></label>
+              <div class="sub-actions" style="margin-top: 16px">
+                <button class="pill-btn" @click="saveExhibition">保存展览</button>
+                <button class="ghost-btn" @click="cancelAdminForm">取消</button>
+              </div>
+            </div>
+            <div class="sub-actions" style="margin-bottom: 18px" v-else>
+              <button class="pill-btn" @click="newExhibition">＋ 新建展览</button>
+            </div>
+            <table>
+              <thead><tr><th>展览</th><th>地点</th><th>日期</th><th>状态</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr v-for="item in adminExhibitions" :key="item.id">
+                  <td>{{ item.title }}</td>
+                  <td>{{ item.location }}</td>
+                  <td>{{ item.start_date }} - {{ item.end_date }}</td>
+                  <td>{{ exhibitionStatusLabel(item.status) }}</td>
+                  <td>
+                    <div class="card-actions">
+                      <button class="link-btn" @click="editExhibition(item)">编辑</button>
+                      <button class="link-btn" @click="closeExhibition(item.id)">下架</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+
+          <template v-else-if="adminTab === 'collections'">
+            <div class="panel" v-if="adminFormVisible">
+              <h3>{{ adminCollection.id ? '编辑藏品' : '新建藏品' }}</h3>
+              <div class="form-grid">
+                <label>所属展览<select v-model="adminCollection.exhibition_id"><option value="">请选择</option><option v-for="item in adminExhibitions" :key="item.id" :value="item.id">{{ item.title }}</option></select></label>
+                <label>藏品名称<input v-model="adminCollection.name" /></label>
+                <label>类别<input v-model="adminCollection.category" /></label>
+                <label>年代/分组<input v-model="adminCollection.dynasty" /></label>
+                <label>图片 URL<input v-model.trim="adminCollection.image_url" /></label>
+              </div>
+              <label style="margin-top: 14px">简介<textarea v-model="adminCollection.description"></textarea></label>
+              <div class="sub-actions" style="margin-top: 16px">
+                <button class="pill-btn" @click="saveCollection">保存藏品</button>
+                <button class="ghost-btn" @click="cancelAdminForm">取消</button>
+              </div>
+            </div>
+            <div class="sub-actions" style="margin-bottom: 18px" v-else>
+              <button class="pill-btn" @click="newCollection">＋ 新建藏品</button>
+            </div>
+            <table>
+              <thead><tr><th>藏品</th><th>类别</th><th>所属展览</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr v-for="item in adminCollections" :key="item.id">
+                  <td>{{ item.name }}</td>
+                  <td>{{ item.category }}</td>
+                  <td>{{ item.exhibition_title }}</td>
+                  <td>
+                    <div class="card-actions">
+                      <button class="link-btn" @click="editCollection(item)">编辑</button>
+                      <button class="link-btn" @click="deleteCollection(item.id)">删除</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+
+          <template v-else-if="adminTab === 'activities'">
+            <div class="panel" v-if="adminFormVisible">
+              <h3>{{ adminActivity.id ? '编辑活动' : '新建活动' }}</h3>
+              <div class="form-grid">
+                <label>活动名称<input v-model="adminActivity.title" /></label>
+                <label>地点<input v-model="adminActivity.location" /></label>
+                <label>活动类型<input v-model="adminActivity.category" /></label>
+                <label>适合人群<input v-model="adminActivity.target_audience" /></label>
+                <label>开始时间<input v-model="adminActivity.activity_time" type="datetime-local" /></label>
+                <label>活动时长（分钟）<input v-model="adminActivity.duration_minutes" type="number" min="30" /></label>
+                <label>人数上限<input v-model="adminActivity.capacity" type="number" min="1" /></label>
+                <label>状态<select v-model="adminActivity.status"><option value="published">开放报名</option><option value="draft">草稿</option><option value="closed">已截止</option></select></label>
+                <label>封面图 URL<input v-model.trim="adminActivity.cover_image_url" /></label>
+              </div>
+              <label style="margin-top: 14px">活动简介<textarea v-model="adminActivity.description"></textarea></label>
+              <label style="margin-top: 14px">材料准备<textarea v-model="adminActivity.materials"></textarea></label>
+              <label style="margin-top: 14px">执行提示<textarea v-model="adminActivity.preparation_note"></textarea></label>
+              <label style="margin-top: 14px">志愿者分配
+                <select v-model="adminActivity.volunteer_ids" multiple>
+                  <option v-for="item in adminVolunteers" :key="item.id" :value="item.id">{{ item.real_name || item.username }}</option>
+                </select>
+              </label>
+              <div class="sub-actions" style="margin-top: 16px">
+                <button class="pill-btn" @click="saveActivity">保存活动</button>
+                <button class="ghost-btn" @click="cancelAdminForm">取消</button>
+              </div>
+            </div>
+            <div class="sub-actions" style="margin-bottom: 18px" v-else>
+              <button class="pill-btn" @click="newActivity">＋ 新建活动</button>
+            </div>
+            <table>
+              <thead><tr><th>活动</th><th>时间</th><th>地点</th><th>状态</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr v-for="item in adminActivities" :key="item.id">
+                  <td>{{ item.title }}</td>
+                  <td>{{ formatDateTime(item.activity_time) }}</td>
+                  <td>{{ item.location }}</td>
+                  <td>{{ item.status }}</td>
+                  <td>
+                    <div class="card-actions">
+                      <button class="link-btn" @click="editActivity(item)">编辑</button>
+                      <button class="link-btn" @click="closeActivity(item.id)">下架</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+
+          <template v-else-if="adminTab === 'guides'">
+            <div class="panel" v-if="adminFormVisible">
+              <h3>{{ adminGuide.id ? '编辑导览' : '新建导览' }}</h3>
+              <div class="form-grid">
+                <label>关联展览<select v-model="adminGuide.exhibition_id"><option value="">无</option><option v-for="item in adminExhibitions" :key="item.id" :value="item.id">{{ item.title }}</option></select></label>
+                <label>展厅名称<input v-model="adminGuide.hall_name" /></label>
+                <label>导览图 URL<input v-model.trim="adminGuide.map_image_url" /></label>
+              </div>
+              <label style="margin-top: 14px">路线说明<textarea v-model="adminGuide.route_description"></textarea></label>
+              <label style="margin-top: 14px">文字导览<textarea v-model="adminGuide.text_guide"></textarea></label>
+              <div class="sub-actions" style="margin-top: 16px">
+                <button class="pill-btn" @click="saveGuide">保存导览</button>
+                <button class="ghost-btn" @click="cancelAdminForm">取消</button>
+              </div>
+            </div>
+            <div class="sub-actions" style="margin-bottom: 18px" v-else>
+              <button class="pill-btn" @click="newGuide">＋ 新建导览</button>
+            </div>
+            <table>
+              <thead><tr><th>展厅</th><th>关联展览</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr v-for="item in adminGuides" :key="item.id">
+                  <td>{{ item.hall_name }}</td>
+                  <td>{{ item.exhibition_title || '无' }}</td>
+                  <td>
+                    <div class="card-actions">
+                      <button class="link-btn" @click="editGuide(item)">编辑</button>
+                      <button class="link-btn" @click="deleteGuide(item.id)">删除</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+
+          <template v-else-if="adminTab === 'reservations'">
+            <div class="panel">
+              <div class="filter-row">
+                <input v-model="adminReservationDate" type="date" style="max-width: 220px" />
+                <select v-model="adminReservationSlot" style="max-width: 220px">
+                  <option value="">全部时间段</option>
+                  <option v-for="slot in adminReservationSlots" :key="slot" :value="slot">{{ slot }}</option>
+                </select>
+                <button class="pill-btn" @click="loadAdminReservations">筛选</button>
+                <button class="ghost-btn" @click="clearAdminReservationFilter">清空</button>
+              </div>
+            </div>
+            <table style="margin-top: 18px">
+              <thead><tr><th>用户</th><th>场次</th><th>状态</th><th>创建时间</th></tr></thead>
+              <tbody>
+                <tr v-for="item in adminReservations" :key="item.id">
+                  <td>{{ item.user.username }}</td>
+                  <td>{{ item.slot.visit_date }} {{ item.slot.time_slot }}</td>
+                  <td>{{ reservationStatusLabel(item.status) }}</td>
+                  <td>{{ formatDateTime(item.created_at) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+
+          <template v-else>
+            <div class="admin-grid">
+              <div class="panel">
+                <h3>志愿者身份申请</h3>
+                <div class="list-meta" style="margin: 4px 0 14px">{{ adminVolunteerRoleApplications.length }} 条待审批</div>
+                <table v-if="adminVolunteerRoleApplications.length">
+                  <thead><tr><th>申请人</th><th>服务方向</th><th>申请时间</th><th>操作</th></tr></thead>
+                  <tbody>
+                    <tr v-for="app in adminVolunteerRoleApplications" :key="app.id">
+                      <td>
+                        <strong>{{ app.user.real_name || app.user.username }}</strong>
+                        <div class="list-meta" style="font-size: 12px">{{ app.motivation || '未填写申请说明' }}</div>
+                      </td>
+                      <td>{{ app.service_area || '未填写' }}</td>
+                      <td>{{ formatDateTime(app.applied_at) }}</td>
+                      <td>
+                        <div class="card-actions">
+                          <button class="pill-btn" @click="approveVolunteerRoleApplication(app.id)">通过</button>
+                          <button class="ghost-btn" @click="rejectVolunteerRoleApplication(app.id)">拒绝</button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class="empty-state" v-else>暂无待审批的志愿者身份申请。</div>
+              </div>
+
+              <div class="panel">
+                <h3>活动参与申请</h3>
+                <div class="list-meta" style="margin: 4px 0 14px">{{ adminApplications.length }} 条待审批</div>
+                <table v-if="adminApplications.length">
+                  <thead><tr><th>志愿者</th><th>申请活动</th><th>申请时间</th><th>操作</th></tr></thead>
+                  <tbody>
+                    <tr v-for="app in adminApplications" :key="app.id">
+                      <td>
+                        <strong>{{ app.volunteer.real_name || app.volunteer.username }}</strong>
+                      </td>
+                      <td>{{ activityTitle(app.activity) }}</td>
+                      <td>{{ formatDateTime(app.applied_at) }}</td>
+                      <td>
+                        <div class="card-actions">
+                          <button class="pill-btn" @click="approveApplication(app.id)">通过</button>
+                          <button class="ghost-btn" @click="rejectApplication(app.id)">拒绝</button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class="empty-state" v-else>暂无待审批的活动参与申请。</div>
+              </div>
+            </div>
+          </template>
+        </section>
+
+        <section v-else-if="route.view === 'volunteer'" class="section">
+          <div class="section-head">
+            <div>
+              <h2>志愿者工作台</h2>
+              <p>浏览活动并申请参与，查看申请状态与已分配活动的报名名单。</p>
+            </div>
+          </div>
+
+          <div class="tab-strip">
+            <button :class="{ active: volunteerTab === 'available' }" @click="volunteerTab = 'available'">可申请活动</button>
+            <button :class="{ active: volunteerTab === 'applications' }" @click="volunteerTab = 'applications'">我的申请</button>
+            <button :class="{ active: volunteerTab === 'assigned' }" @click="volunteerTab = 'assigned'">已分配活动</button>
+          </div>
+
+          <div v-if="volunteerTab === 'available'">
+            <div class="activity-grid" v-if="volunteerAvailableActivities.length">
+              <article class="activity-card" v-for="item in volunteerAvailableActivities" :key="item.id">
+                <img class="card-image" :src="imageFor(item.cover_image_url)" :alt="item.title" />
+                <div class="card-body">
+                  <div class="meta">{{ activityMetaLabel(item) }}</div>
+                  <h3>{{ activityTitle(item) }}</h3>
+                  <p>{{ activitySummary(item) }}</p>
+                  <div class="list-meta" style="margin-top: 12px">已报名 {{ item.registered_count }} / {{ item.capacity }}</div>
+                  <div class="card-actions">
+                    <button class="pill-btn" @click="applyForActivity(item.id)">申请参加</button>
+                    <button class="ghost-btn" @click="openActivity(item.id)">查看详情</button>
+                  </div>
+                </div>
+              </article>
+            </div>
+            <div class="empty-state" v-else>暂无可申请的活动，所有已发布活动你已全部申请或参与。</div>
+          </div>
+
+          <div v-else-if="volunteerTab === 'applications'">
+            <div class="record-list" v-if="volunteerApplications.length">
+              <div class="record" v-for="app in volunteerApplications" :key="app.id">
+                <strong>{{ activityTitle(app.activity) }}</strong>
+                <div class="list-meta">{{ activityMetaLabel(app.activity) }}</div>
+                <span class="badge" :style="{ background: app.status === 'approved' ? 'rgba(46,125,50,0.12)' : app.status === 'rejected' ? 'rgba(166,31,36,0.12)' : 'rgba(195,160,99,0.2)', color: app.status === 'approved' ? '#2e7d32' : app.status === 'rejected' ? 'var(--brand)' : '#8d6e30' }">{{ applicationStatusLabel(app.status) }}</span>
+                <div class="list-meta" style="margin-top: 8px">申请时间：{{ formatDateTime(app.applied_at) }}</div>
+                <div class="sub-actions" style="margin-top: 12px">
+                  <button class="pill-btn" v-if="app.status === 'rejected'" @click="applyForActivity(app.activity.id)">重新申请</button>
+                  <button class="ghost-btn" @click="openActivity(app.activity.id)">查看详情</button>
+                </div>
+              </div>
+            </div>
+            <div class="empty-state" v-else>还没有提交过活动申请。</div>
+          </div>
+
+          <div v-else>
+            <div class="two-grid">
+              <div class="record-list">
+                <div class="record" v-for="item in volunteerActivities" :key="item.id">
+                  <strong>{{ activityTitle(item) }}</strong>
+                  <div class="list-meta">{{ activityMetaLabel(item) }}</div>
+                  <div class="list-meta">已报名 {{ item.registered_count }} / {{ item.capacity }}</div>
+                  <div class="list-meta">材料：{{ item.materials || '现场统一提供' }}</div>
+                  <div class="sub-actions" style="margin-top: 12px">
+                    <button class="ghost-btn" @click="loadVolunteerRegistrations(item.id)">查看报名名单</button>
+                    <button class="ghost-btn" @click="openActivity(item.id)">活动详情</button>
+                  </div>
+                  <div class="detail-inline">
+                    <p>适合人群：{{ item.target_audience || '公众观众' }}</p>
+                    <p style="margin-top: 8px">执行提示：{{ item.preparation_note || '请按时完成现场准备。' }}</p>
+                  </div>
+                </div>
+                <div class="empty-state" v-if="!volunteerActivities.length">暂未分配活动，去「可申请活动」中申请参与。</div>
+              </div>
+              <div class="panel">
+                <h3>报名名单</h3>
+                <div class="record-list" v-if="volunteerRegistrations.length">
+                  <div class="record" v-for="item in volunteerRegistrations" :key="item.id">
+                    <strong>{{ item.user.real_name || item.user.username }}</strong>
+                    <div class="list-meta">{{ item.user.phone || '未填写手机号' }}</div>
+                    <div class="list-meta">报名状态：{{ activityStatusLabel(item.status) }}</div>
+                  </div>
+                </div>
+                <div class="empty-state" v-else>选择左侧活动后查看报名名单。</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-inner">
+          <div class="footer-grid">
+            <div>
+              <h4>中国工艺美术馆</h4>
+              <p>以展览、馆藏、公共教育与导览服务为核心的在线参观入口。</p>
+            </div>
+            <div>
+              <h4>参观服务</h4>
+              <ul>
+                <li><a href="#reservation">预约参观</a></li>
+                <li><a href="#guides">馆内导览</a></li>
+                <li><a href="#activities">活动信息</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4>内容浏览</h4>
+              <ul>
+                <li><a href="#exhibitions">展览</a></li>
+                <li><a href="#collections">馆藏</a></li>
+                <li><a href="#me">我的</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4>说明</h4>
+              <p>图片与公开内容同步自馆方英文站公开页面，用于课程项目演示与前后端联调。</p>
+            </div>
+          </div>
+          <div class="footer-bottom">
+            <span>中国工艺美术馆线上参观服务界面</span>
+            <span>课程项目演示版本</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      const { createApp } = Vue;
+      const API_BASE = localStorage.getItem("museum_api_base") || "http://127.0.0.1:8000/api";
+      const FALLBACK_IMAGE = "https://subsites.chinadaily.com.cn/ctcmen/att/20240425/1714033966277019069.jpg";
+      const CATEGORY_MAP = {
+        "Jade Sculpture": "玉雕",
+        "Ceramics": "陶瓷",
+        "Metal Crafts": "金属工艺",
+        "Textile and Embroidery": "织绣染艺",
+        "Lacquerware and Lacquer Artistry": "漆器漆艺",
+        "玉雕": "玉雕",
+        "陶瓷": "陶瓷",
+        "金属工艺": "金属工艺",
+        "织染绣": "织绣染艺",
+        "水晶雕刻": "水晶雕刻",
+        "玉石雕刻": "玉石雕刻",
+        "漆器漆艺": "漆器漆艺",
+      };
+      const LOCATION_MAP = {
+        "Exhibition Hall, 5/F": "五层展厅",
+        "Hall 1 and Hall 2, 1/F": "一层 1 号厅与 2 号厅",
+        "Hall 4, 4/F": "四层 4 号厅",
+        "Hall 3, 4/F": "四层 3 号厅",
+        "Exhibition Hall 5&6, 4/F": "四层 5、6 号厅",
+        "North Exhibition Hall, 6/F": "六层北展厅",
+        "North Corridor, 1/F": "一层北廊",
+        "Hall 7, 6/F": "六层 7 号厅",
+        "Hall 12, 6/F": "六层 12 号厅",
+        "中国工艺美术馆公共活动区": "中国工艺美术馆公共活动区",
+      };
+      const EXHIBITION_TITLE_MAP = {
+        "Prosperity Nourished by Chinese Culture -- Basic Exhibition of Chinese Arts and Crafts": "文脉华滋 中国工艺美术基本陈列",
+        "Exhibition of Qinghai Silk Road Artifacts and Qutan Temple Murals": "青海丝路文物与瞿昙寺壁画艺术展",
+        "Welcoming Spring: Traditions and New Rhythms in Mianzhu New Year Paintings": "迎春新韵 绵竹年画艺术展",
+        "Guo Nian: Photographic Exhibition on the Spring Festival": "过年 春节主题摄影展",
+        "Intangible Cultural Heritage Exhibition of Hotan Prefecture, Xinjiang": "新疆和田地区非物质文化遗产展",
+        "Splendid Diversity: Practices in Chinese ICH Protection": "锦绣多彩 中国非遗保护实践展",
+        "Guo Nian: Bingwu Spring Festival Themed Exhibition": "过年 丙午新春主题展",
+        "Red Memory Engraved in Thangka: The Innovative Art of Langkajie Thangka": "红色记忆 镌刻于唐卡的郎卡杰创新艺术展",
+        "The 20th \"Arts and Crafts Cup\" Beijing Arts and Crafts Competition Achievement Exhibition": "第二十届工美杯北京工艺美术创新成果展",
+      };
+      const EXHIBITION_SUMMARY_MAP = {
+        "Prosperity Nourished by Chinese Culture -- Basic Exhibition of Chinese Arts and Crafts": "以工艺门类、时代脉络与生活美学为线索，呈现中国工艺美术的发展历程与当代气象。",
+        "Exhibition of Qinghai Silk Road Artifacts and Qutan Temple Murals": "围绕青海丝路遗珍、瞿昙寺壁画与多民族交往交流，展示高原文明与中华文化的互鉴融合。",
+        "Welcoming Spring: Traditions and New Rhythms in Mianzhu New Year Paintings": "从年俗、版印与民间色彩出发，呈现绵竹年画的传统技艺与当代表达。",
+        "Guo Nian: Photographic Exhibition on the Spring Festival": "以摄影图像记录春节社会生活、节庆记忆与当代中国人的共同情感。",
+        "Intangible Cultural Heritage Exhibition of Hotan Prefecture, Xinjiang": "集中展示和田地区的织染、纸艺、营造与民间工艺，呈现丝路文化与非遗活态传承。",
+        "Splendid Diversity: Practices in Chinese ICH Protection": "从全国非遗保护案例出发，展示制度建设、传承实践与公众参与的最新成果。",
+        "Guo Nian: Bingwu Spring Festival Themed Exhibition": "围绕新春节庆与生肖文化展开，营造富有节令气息的沉浸式参观体验。",
+        "Red Memory Engraved in Thangka: The Innovative Art of Langkajie Thangka": "通过唐卡艺术的创新表达，展现红色记忆、民族艺术与时代叙事的交织。",
+        "The 20th \"Arts and Crafts Cup\" Beijing Arts and Crafts Competition Achievement Exhibition": "汇集工美杯历届代表作品与当代创新成果，展现北京工艺美术的传承与新貌。",
+      };
+      const ACTIVITY_TITLE_MAP = {
+        "CTCM holds 2024 Spring Lantern Festival": "2024 新春灯会",
+        "Shanxi Opera Shows Held in Beijing": "晋韵风华 山西戏曲专场展演",
+      };
+      const ACTIVITY_SUMMARY_MAP = {
+        "CTCM holds 2024 Spring Lantern Festival": "以新春灯彩、传统手工与节庆氛围为核心，适合夜间游览与节日体验。",
+        "Shanxi Opera Shows Held in Beijing": "围绕山西戏曲与非遗展演展开，适合结合展览参观一并体验。",
+      };
+      const COLLECTION_TITLE_MAP = {
+        "Tang Ka": "唐卡",
+        "Pan": "盘",
+        "Rui Xue Zhao Feng Nian": "瑞雪兆丰年",
+        "Ya Shi Guan Xue Tu": "雅士观雪图",
+        "Mo Dao Ren": "磨刀人",
+        "Chun Sheng": "春声",
+        "Guan Cang Hai": "观沧海",
+        "Ru Yi Jian": "如意件",
+        "Qiu Shan Gao Yin Tu": "秋山高隐图",
+        "Long Ding Xiang Lu": "龙鼎香炉",
+        "Shan Ju Tu Bi Tong": "山居图笔筒",
+        "Wan Shou Zhong Hua": "万寿中华",
+        "Su Xiu Shuang Mian Huang Mao": "苏绣双面黄猫",
+        "Zhu Lin": "竹林",
+        "Cou Re Nao": "凑热闹",
+        "Xin Niang": "新娘",
+        "Lan Shi Tu": "兰石图",
+        "Fei Xiang": "飞翔",
+        "Jin Yu": "金鱼",
+        "Hai Xian": "海鲜",
+        "Le Zai Qi Zhong": "乐在其中",
+        "Hua Fei Hua Wen": "花飞花纹",
+        "Bao Sha Yin Hua Jiang Jun Ping": "宝砂银花将军瓶",
+        "Lao Wu Ting Qiu": "老屋听秋",
+      };
+
+      createApp({
+        data() {
+          return {
+            route: { view: "home", id: null },
+            pendingHomeSection: "",
+            token: localStorage.getItem("museum_token") || "",
+            user: JSON.parse(localStorage.getItem("museum_user") || "null"),
+            notice: { text: "", type: "success" },
+            exhibitions: [],
+            publicCollections: [],
+            activities: [],
+            guides: [],
+            slots: [],
+            reservations: [],
+            activityRegistrations: [],
+            profile: null,
+            volunteerRoleApplication: null,
+            selectedExhibition: null,
+            selectedCollection: null,
+            selectedActivity: null,
+            selectedGuide: null,
+            selectedDate: "",
+            activeActivityCategory: "全部",
+            myTab: "profile",
+            authMode: "login",
+            activeCollectionCategory: "全部",
+            expandedReservationId: null,
+            expandedRegistrationId: null,
+            adminFormVisible: false,
+            loginForm: { username: "", password: "" },
+            registerForm: { username: "", password: "", phone: "", email: "", real_name: "" },
+            adminTab: "exhibitions",
+            adminExhibitions: [],
+            adminCollections: [],
+            adminActivities: [],
+            adminGuides: [],
+            adminReservations: [],
+            adminVolunteers: [],
+            adminReservationDate: "",
+            adminReservationSlot: "",
+            adminApplications: [],
+            adminVolunteerRoleApplications: [],
+            adminExhibition: { title: "", description: "", start_date: "", end_date: "", location: "", status: "published", cover_image_url: "" },
+            adminCollection: { exhibition_id: "", name: "", category: "", dynasty: "", description: "", image_url: "" },
+            adminActivity: { title: "", description: "", activity_time: "", location: "", category: "", target_audience: "", materials: "", preparation_note: "", duration_minutes: 90, capacity: 20, status: "published", cover_image_url: "", volunteer_ids: [] },
+            adminGuide: { exhibition_id: "", hall_name: "", route_description: "", text_guide: "", map_image_url: "" },
+            volunteerRoleForm: { service_area: "", motivation: "" },
+            volunteerTab: "available",
+            volunteerActivities: [],
+            volunteerRegistrations: [],
+            volunteerAvailableActivities: [],
+            volunteerApplications: [],
+          };
+        },
+        computed: {
+          isLoggedIn() {
+            return Boolean(this.user && this.token);
+          },
+          isAdmin() {
+            return this.user && this.user.role === "admin";
+          },
+          isVolunteer() {
+            return this.user && this.user.role === "volunteer";
+          },
+          isVisitor() {
+            return this.user && this.user.role === "visitor";
+          },
+          volunteerRoleButtonLabel() {
+            if (!this.volunteerRoleApplication) return "提交志愿者申请";
+            if (this.volunteerRoleApplication.status === "pending") return "更新申请信息";
+            if (this.volunteerRoleApplication.status === "rejected") return "重新提交申请";
+            return "提交志愿者申请";
+          },
+          backendOrigin() {
+            return API_BASE.replace(/\/api\/?$/, "");
+          },
+          featuredExhibition() {
+            return this.displayExhibitions[0] || null;
+          },
+          heroBackdrop() {
+            return this.featuredExhibition ? this.imageFor(this.featuredExhibition.cover_image_url) : FALLBACK_IMAGE;
+          },
+          authBackdrop() {
+            const target = this.displayExhibitions[1] || this.displayExhibitions[0];
+            return target ? this.imageFor(target.cover_image_url) : FALLBACK_IMAGE;
+          },
+          displayExhibitions() {
+            const official = this.exhibitions.filter((item) => (item.cover_image_url || "").includes("/static/official/"));
+            return official.length ? official : this.exhibitions;
+          },
+          displayCollections() {
+            const official = this.publicCollections.filter((item) => (item.image_url || "").includes("/static/official/"));
+            return official.length ? official : this.publicCollections;
+          },
+          displayActivities() {
+            const official = this.activities.filter((item) => (item.cover_image_url || "").includes("/static/official/"));
+            return official.length ? official : this.activities;
+          },
+          activityCategories() {
+            const categories = [...new Set(this.displayActivities.map((item) => item.category).filter(Boolean))];
+            const preferred = ["非遗体验", "讲解活动"];
+            return preferred.filter((item) => categories.includes(item));
+          },
+          filteredActivities() {
+            if (this.activeActivityCategory === "全部") return this.displayActivities;
+            return this.displayActivities.filter((item) => item.category === this.activeActivityCategory);
+          },
+          latestActivities() {
+            return this.displayActivities.slice(0, 3);
+          },
+          isCurrentActivityRegistered() {
+            if (!this.selectedActivity || !this.activityRegistrations.length) return false;
+            return this.activityRegistrations.some(
+              (r) => r.activity && r.activity.id === this.selectedActivity.id && r.status === 'active'
+            );
+          },
+          collectionCategories() {
+            return [...new Set(this.displayCollections.map((item) => item.category).filter(Boolean))];
+          },
+          filteredCollections() {
+            if (this.activeCollectionCategory === "全部") return this.displayCollections;
+            return this.displayCollections.filter((item) => item.category === this.activeCollectionCategory);
+          },
+          waterfallColumns() {
+            const cols = [[], [], [], []];
+            this.filteredCollections.forEach((item, i) => {
+              cols[i % 4].push(item);
+            });
+            return cols;
+          },
+          homeCollections() {
+            return this.filteredCollections.slice(0, 12);
+          },
+          availableDates() {
+            return [...new Set(this.slots.map((slot) => slot.visit_date))];
+          },
+          filteredSlots() {
+            if (!this.selectedDate) return [];
+            return this.slots.filter((slot) => slot.visit_date === this.selectedDate);
+          },
+          activeReservationByDate() {
+            const map = {};
+            this.reservations
+              .filter((item) => item.status === "active" && item.slot?.visit_date)
+              .forEach((item) => {
+                map[item.slot.visit_date] = item;
+              });
+            return map;
+          },
+          adminReservationSlots() {
+            const source = this.adminReservationDate
+              ? this.slots.filter((slot) => slot.visit_date === this.adminReservationDate)
+              : this.slots;
+            return [...new Set(source.map((slot) => slot.time_slot))];
+          },
+          selectedDateSummary() {
+            if (!this.selectedDate) return "请选择参观日期。";
+            if (this.isMonday(this.selectedDate)) return `${this.selectedDate} 为周一，闭馆不开放预约。`;
+            if (this.activeReservationForDate(this.selectedDate)) return `${this.selectedDate} 已有预约记录，如需改约请先取消当前时间段。`;
+            if (!this.filteredSlots.length) return `${this.selectedDate} 当前没有可预约场次。`;
+            return `${this.selectedDate} 提供 4 个参观时段，可按剩余名额选择预约。`;
+          },
+        },
+        watch: {
+          adminTab() {
+            this.adminFormVisible = false;
+            if (this.adminTab === "reservations") this.loadAdminReservations();
+            if (this.adminTab === "applications") this.loadAdminApplications();
+          },
+        },
+        async mounted() {
+          window.addEventListener("hashchange", this.syncRoute);
+          this.syncRoute();
+          try {
+            await this.loadPublicData();
+          } catch (error) {
+            this.notify("未能连接后端接口。请先启动 Django 后端，页面当前仅显示静态结构。", "error");
+          }
+          if (this.isLoggedIn) {
+            try {
+              await this.loadPrivateData();
+            } catch (error) {
+              this.notify("登录状态已恢复，但用户数据未能加载。", "error");
+            }
+          }
+          try {
+            await this.loadRouteData();
+          } catch (error) {
+            this.notify("当前页面数据加载失败，请稍后刷新。", "error");
+          }
+          this.scrollPendingSection();
+        },
+        beforeUnmount() {
+          window.removeEventListener("hashchange", this.syncRoute);
+        },
+        methods: {
+          headers(extra = {}) {
+            return {
+              "Content-Type": "application/json",
+              ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
+              ...extra,
+            };
+          },
+          async api(path, options = {}) {
+            const response = await fetch(`${API_BASE}${path}`, {
+              ...options,
+              headers: this.headers(options.headers || {}),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(data.detail || "请求失败");
+            return data;
+          },
+          notify(text, type = "success") {
+            this.notice = { text, type };
+            window.clearTimeout(this.noticeTimer);
+            this.noticeTimer = window.setTimeout(() => {
+              this.notice.text = "";
+            }, 3200);
+          },
+          imageFor(url) {
+            if (!url) return FALLBACK_IMAGE;
+            if (/^https?:\/\//.test(url)) return url;
+            if (url.startsWith("/static/")) return `${this.backendOrigin}${url}`;
+            if (url.startsWith("/")) return `${this.backendOrigin}${url}`;
+            return url;
+          },
+          shorten(text, limit) {
+            if (!text) return "";
+            return text.length > limit ? `${text.slice(0, limit)}...` : text;
+          },
+          categoryLabel(category) {
+            return CATEGORY_MAP[category] || category || "馆藏";
+          },
+          locationLabel(location) {
+            return LOCATION_MAP[location] || location || "中国工艺美术馆";
+          },
+          exhibitionTitle(item) {
+            const title = typeof item === "string" ? item : item?.title;
+            return EXHIBITION_TITLE_MAP[title] || title || "展览";
+          },
+          exhibitionSummary(item, detail = false) {
+            const title = typeof item === "string" ? item : item?.title;
+            if (EXHIBITION_SUMMARY_MAP[title]) {
+              return detail ? `${EXHIBITION_SUMMARY_MAP[title]} 展览信息以馆方公开内容为准。` : EXHIBITION_SUMMARY_MAP[title];
+            }
+            return detail ? "该展览信息来自馆方公开页面，建议结合展厅导览进一步了解重点内容。" : "该展览已在馆方公开页面发布，适合到馆前先快速了解主题与展陈重点。";
+          },
+          activityTitle(item) {
+            const title = typeof item === "string" ? item : item?.title;
+            return ACTIVITY_TITLE_MAP[title] || title || "活动";
+          },
+          activityCategoryLabel(category) {
+            return category || "活动";
+          },
+          activityScheduleLabel(item) {
+            if (!item || !item.activity_time) return "";
+            if ((item.category || "").trim() === "非遗体验") return "";
+            const date = new Date(item.activity_time);
+            return date.toLocaleString("zh-CN", {
+              hour12: false,
+              year: "numeric",
+              month: "numeric",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+          },
+          activityMetaLabel(item) {
+            const location = this.locationLabel(item?.location);
+            const schedule = this.activityScheduleLabel(item);
+            return schedule ? `${schedule} · ${location}` : location;
+          },
+          activitySummary(item, detail = false) {
+            const title = typeof item === "string" ? item : item?.title;
+            if (ACTIVITY_SUMMARY_MAP[title]) {
+              return detail ? `${ACTIVITY_SUMMARY_MAP[title]} 登录后可继续完成报名。` : ACTIVITY_SUMMARY_MAP[title];
+            }
+            const description = typeof item === "string" ? "" : (item?.description || "").trim();
+            if (description) {
+              return detail ? description : this.shorten(description, 48);
+            }
+            return detail ? "该活动信息已同步到站内，建议先查看时间、地点与名额后再报名。" : "可查看时间、地点与剩余名额，登录后继续报名。";
+          },
+          collectionTitle(item, index = null) {
+            const title = typeof item === "string" ? item : item?.name;
+            if (COLLECTION_TITLE_MAP[title]) return COLLECTION_TITLE_MAP[title];
+            const category = this.categoryLabel(typeof item === "string" ? "" : item?.category);
+            const suffix = index === null ? "" : ` ${String(index + 1).padStart(2, "0")}`;
+            return `${category}藏品${suffix}`;
+          },
+          collectionSummary(item, detail = false) {
+            const category = this.categoryLabel(item?.category);
+            if (detail) {
+              return `该藏品归属${category}门类，可结合所属展览与现场展签进一步了解其工艺特征与审美意涵。`;
+            }
+            return `${category}门类代表作品。`;
+          },
+          formatDateTime(value) {
+            return value ? new Date(value).toLocaleString("zh-CN", { hour12: false }) : "";
+          },
+          todayDateString() {
+            return new Date().toLocaleDateString("sv-SE");
+          },
+          isMonday(value) {
+            if (!value) return false;
+            return new Date(`${value}T00:00:00`).getDay() === 1;
+          },
+          roleLabel(role) {
+            return { visitor: "游客", admin: "管理员", volunteer: "志愿者" }[role] || role;
+          },
+          exhibitionStatusLabel(status) {
+            return { published: "已发布", draft: "草稿", closed: "已下架" }[status] || status;
+          },
+          reservationStatusLabel(status) {
+            return { active: "已预约", cancelled: "已取消", expired: "已过期" }[status] || status;
+          },
+          activeReservationForDate(date) {
+            return this.activeReservationByDate[date] || null;
+          },
+          canReserveSlot(slot) {
+            if (!this.isLoggedIn) return false;
+            if (!slot || slot.available_count <= 0) return false;
+            const sameDayReservation = this.activeReservationForDate(slot.visit_date);
+            return !sameDayReservation;
+          },
+          reservationButtonLabel(slot) {
+            if (!this.isLoggedIn) return "提交预约";
+            const sameDayReservation = this.activeReservationForDate(slot?.visit_date);
+            if (sameDayReservation) return "当日已预约";
+            if (slot.available_count <= 0) return "名额已满";
+            return "提交预约";
+          },
+          activityStatusLabel(status) {
+            return { active: "已报名", cancelled: "已取消" }[status] || status;
+          },
+          applicationStatusLabel(status) {
+            return { pending: "待审批", approved: "已通过", rejected: "已拒绝" }[status] || status;
+          },
+          navActive(key) {
+            const map = {
+              home: ["home"],
+              exhibitions: ["exhibitions", "exhibition-detail"],
+              collections: ["collections", "collection-detail"],
+              activities: ["activities", "activity-detail"],
+              guides: ["guides", "guide-detail"],
+              reservation: ["reservation"],
+              me: ["me", "account", "admin", "volunteer"],
+            };
+            return (map[key] || []).includes(this.route.view);
+          },
+          parseHash() {
+            const hash = window.location.hash.replace(/^#/, "");
+            if (!hash) return { view: "home", id: null };
+            const parts = hash.split("/");
+            const [view, id] = parts;
+            if (view === "exhibition" && id) return { view: "exhibition-detail", id };
+            if (view === "collection" && id) return { view: "collection-detail", id };
+            if (view === "activity" && id) return { view: "activity-detail", id };
+            if (view === "guide" && id) return { view: "guide-detail", id };
+            return { view, id: id || null };
+          },
+          syncRoute() {
+            this.route = this.parseHash();
+            const allowed = ["home", "exhibitions", "collections", "activities", "guides", "reservation", "account", "me", "admin", "volunteer", "exhibition-detail", "collection-detail", "activity-detail", "guide-detail"];
+            if (!allowed.includes(this.route.view)) {
+              this.route = { view: "home", id: null };
+              window.location.hash = "#home";
+              return;
+            }
+            if (this.route.view === "admin" && !this.isAdmin) {
+              this.notify("当前账号无权访问后台。", "error");
+              this.go("home");
+              return;
+            }
+            if (this.route.view === "volunteer" && !this.isVolunteer) {
+              this.notify("当前账号无权访问志愿者页面。", "error");
+              this.go("home");
+              return;
+            }
+            this.loadRouteData();
+          },
+          go(view) {
+            window.location.hash = `#${view}`;
+          },
+          openAuth(mode) {
+            this.authMode = mode;
+            this.go("account");
+          },
+          goHomeSection(sectionId) {
+            this.pendingHomeSection = sectionId;
+            if (this.route.view !== "home") {
+              this.go("home");
+            } else {
+              this.scrollPendingSection();
+            }
+          },
+          scrollPendingSection() {
+            if (!this.pendingHomeSection || this.route.view !== "home") return;
+            this.$nextTick(() => {
+              const node = document.getElementById(this.pendingHomeSection);
+              if (node) node.scrollIntoView({ behavior: "smooth", block: "start" });
+              this.pendingHomeSection = "";
+            });
+          },
+          goReservation() {
+            if (!this.isLoggedIn) this.notify("未登录状态下可先查看场次，登录后可提交预约。");
+            this.go("reservation");
+          },
+          goMe() {
+            this.go("me");
+          },
+          toggleReservationDetail(id) {
+            this.expandedReservationId = this.expandedReservationId === id ? null : id;
+          },
+          toggleRegistrationDetail(id) {
+            this.expandedRegistrationId = this.expandedRegistrationId === id ? null : id;
+          },
+          openExhibition(id) {
+            window.location.hash = `#exhibition/${id}`;
+          },
+          openCollection(id) {
+            window.location.hash = `#collection/${id}`;
+          },
+          openActivity(id) {
+            window.location.hash = `#activity/${id}`;
+          },
+          openGuide(id) {
+            window.location.hash = `#guide/${id}`;
+          },
+          async loadPublicData() {
+            await Promise.all([this.loadExhibitions(), this.loadActivities(), this.loadGuides(), this.loadSlots()]);
+            await this.loadPublicCollections();
+          },
+          async loadPrivateData() {
+            await this.loadProfile();
+            await Promise.all([
+              this.loadReservations(),
+              this.loadActivityRegistrations(),
+              this.loadVolunteerRoleApplication(),
+            ]);
+            if (this.isAdmin) await this.loadAdminData();
+            if (this.isVolunteer) await this.loadVolunteerData();
+          },
+          async loadRouteData() {
+            if (this.route.view === "exhibition-detail" && this.route.id) {
+              this.selectedExhibition = await this.api(`/exhibitions/${this.route.id}/`).catch(() => null);
+            }
+            if (this.route.view === "collection-detail" && this.route.id) {
+              this.selectedCollection = await this.api(`/collections/${this.route.id}/`).catch(() => null);
+            }
+            if (this.route.view === "activity-detail" && this.route.id) {
+              this.selectedActivity = await this.api(`/activities/${this.route.id}/`).catch(() => null);
+            }
+            if (this.route.view === "guide-detail" && this.route.id) {
+              this.selectedGuide = await this.api(`/guides/${this.route.id}/`).catch(() => null);
+            }
+            if (this.route.view === "admin" && this.isAdmin) await this.loadAdminData();
+            if (this.route.view === "volunteer" && this.isVolunteer) await this.loadVolunteerData();
+            this.scrollPendingSection();
+          },
+          async loadExhibitions() {
+            this.exhibitions = await this.api("/exhibitions/");
+          },
+          async loadPublicCollections() {
+            const details = await Promise.all(this.exhibitions.map((item) => this.api(`/exhibitions/${item.id}/`)));
+            this.publicCollections = details.flatMap((exhibition) =>
+              (exhibition.collections || []).map((item) => ({ ...item, exhibition_title: exhibition.title }))
+            );
+          },
+          async loadActivities() {
+            this.activities = await this.api("/activities/");
+          },
+          async loadGuides() {
+            this.guides = await this.api("/guides/");
+          },
+          async loadSlots() {
+            this.slots = await this.api("/visit-slots/");
+            const today = this.todayDateString();
+            if (!this.selectedDate) {
+              this.selectedDate = today;
+            } else if (!this.availableDates.includes(this.selectedDate) && !this.isMonday(this.selectedDate)) {
+              this.selectedDate = this.availableDates[0] || today;
+            }
+          },
+          async loadProfile() {
+            this.profile = await this.api("/profile/");
+            this.user = { ...this.user, ...this.profile };
+            localStorage.setItem("museum_user", JSON.stringify(this.user));
+          },
+          async loadVolunteerRoleApplication() {
+            if (!this.isLoggedIn) return;
+            this.volunteerRoleApplication = await this.api("/my/volunteer-role-application/");
+            this.volunteerRoleForm = {
+              service_area: this.volunteerRoleApplication?.service_area || "",
+              motivation: this.volunteerRoleApplication?.motivation || "",
+            };
+          },
+          async loadReservations() {
+            if (!this.isLoggedIn) return;
+            this.reservations = await this.api("/reservations/");
+          },
+          async loadActivityRegistrations() {
+            if (!this.isLoggedIn) return;
+            this.activityRegistrations = await this.api("/my/activity-registrations/");
+          },
+          async login() {
+            try {
+              const data = await this.api("/login/", { method: "POST", body: JSON.stringify(this.loginForm) });
+              this.setSession(data);
+              await this.loadPrivateData();
+              this.notify("登录成功。");
+              this.go("me");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async register() {
+            try {
+              const data = await this.api("/register/", { method: "POST", body: JSON.stringify(this.registerForm) });
+              this.setSession(data);
+              await this.loadPrivateData();
+              this.notify("注册成功，已自动登录。");
+              this.go("me");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          setSession(data) {
+            this.token = data.token;
+            this.user = data.user;
+            localStorage.setItem("museum_token", this.token);
+            localStorage.setItem("museum_user", JSON.stringify(this.user));
+          },
+          async logout() {
+            await this.api("/logout/", { method: "POST" }).catch(() => {});
+            this.token = "";
+            this.user = null;
+            this.profile = null;
+            this.volunteerRoleApplication = null;
+            this.volunteerRoleForm = { service_area: "", motivation: "" };
+            this.reservations = [];
+            this.activityRegistrations = [];
+            this.adminReservations = [];
+            this.adminApplications = [];
+            this.adminVolunteerRoleApplications = [];
+            this.volunteerActivities = [];
+            this.volunteerRegistrations = [];
+            this.volunteerAvailableActivities = [];
+            this.volunteerApplications = [];
+            localStorage.removeItem("museum_token");
+            localStorage.removeItem("museum_user");
+            this.notify("已退出登录。");
+            this.go("home");
+          },
+          async reserve(slotId) {
+            try {
+              await this.api("/reservations/", { method: "POST", body: JSON.stringify({ slot_id: slotId }) });
+              await Promise.all([this.loadReservations(), this.loadSlots()]);
+              this.notify("预约成功。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async cancelReservation(id) {
+            try {
+              await this.api(`/reservations/${id}/cancel/`, { method: "POST" });
+              await Promise.all([this.loadReservations(), this.loadSlots()]);
+              this.notify("预约已取消。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async registerActivity(id) {
+            try {
+              await this.api(`/activities/${id}/register/`, { method: "POST" });
+              await Promise.all([this.loadActivities(), this.loadActivityRegistrations()]);
+              if (this.route.view === "activity-detail") this.selectedActivity = await this.api(`/activities/${id}/`);
+              this.notify("活动报名成功。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async loadAdminData() {
+            const [exhibitions, collections, activities, guides, volunteers] = await Promise.all([
+              this.api("/admin/exhibitions/"),
+              this.api("/admin/collections/"),
+              this.api("/admin/activities/"),
+              this.api("/admin/guides/"),
+              this.api("/admin/volunteers/"),
+            ]);
+            this.adminExhibitions = exhibitions;
+            this.adminCollections = collections;
+            this.adminActivities = activities;
+            this.adminGuides = guides;
+            this.adminVolunteers = volunteers;
+            await Promise.all([this.loadAdminReservations(), this.loadAdminVolunteerRoleApplications()]);
+          },
+          async loadAdminReservations() {
+            const params = new URLSearchParams();
+            if (this.adminReservationDate) params.set("date", this.adminReservationDate);
+            if (this.adminReservationSlot) params.set("time_slot", this.adminReservationSlot);
+            const query = params.toString() ? `?${params.toString()}` : "";
+            this.adminReservations = await this.api(`/admin/reservations/${query}`);
+          },
+          clearAdminReservationFilter() {
+            this.adminReservationDate = "";
+            this.adminReservationSlot = "";
+            this.loadAdminReservations();
+          },
+          cancelAdminForm() {
+            this.adminFormVisible = false;
+          },
+          resetExhibitionForm() {
+            this.adminExhibition = { title: "", description: "", start_date: "", end_date: "", location: "", status: "published", cover_image_url: "" };
+          },
+          newExhibition() {
+            this.resetExhibitionForm();
+            this.adminFormVisible = true;
+          },
+          editExhibition(item) {
+            this.adminExhibition = { ...item };
+            this.adminFormVisible = true;
+          },
+          async saveExhibition() {
+            try {
+              const item = this.adminExhibition;
+              const path = item.id ? `/admin/exhibitions/${item.id}/` : "/admin/exhibitions/";
+              const method = item.id ? "PUT" : "POST";
+              await this.api(path, { method, body: JSON.stringify(item) });
+              this.resetExhibitionForm();
+              this.adminFormVisible = false;
+              await Promise.all([this.loadAdminData(), this.loadExhibitions()]);
+              await this.loadPublicCollections();
+              this.notify("展览已保存。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async closeExhibition(id) {
+            try {
+              await this.api(`/admin/exhibitions/${id}/`, { method: "DELETE" });
+              await Promise.all([this.loadAdminData(), this.loadExhibitions()]);
+              await this.loadPublicCollections();
+              this.notify("展览已下架。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          resetCollectionForm() {
+            this.adminCollection = { exhibition_id: "", name: "", category: "", dynasty: "", description: "", image_url: "" };
+          },
+          newCollection() {
+            this.resetCollectionForm();
+            this.adminFormVisible = true;
+          },
+          editCollection(item) {
+            this.adminCollection = { ...item };
+            this.adminFormVisible = true;
+          },
+          async saveCollection() {
+            try {
+              const item = this.adminCollection;
+              const payload = { ...item, exhibition_id: item.exhibition_id ? Number(item.exhibition_id) : null };
+              const path = item.id ? `/admin/collections/${item.id}/` : "/admin/collections/";
+              const method = item.id ? "PUT" : "POST";
+              await this.api(path, { method, body: JSON.stringify(payload) });
+              this.resetCollectionForm();
+              this.adminFormVisible = false;
+              await this.loadAdminData();
+              await this.loadPublicCollections();
+              this.notify("藏品已保存。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async deleteCollection(id) {
+            try {
+              await this.api(`/admin/collections/${id}/`, { method: "DELETE" });
+              await this.loadAdminData();
+              await this.loadPublicCollections();
+              this.notify("藏品已删除。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          resetActivityForm() {
+            this.adminActivity = { title: "", description: "", activity_time: "", location: "", category: "", target_audience: "", materials: "", preparation_note: "", duration_minutes: 90, capacity: 20, status: "published", cover_image_url: "", volunteer_ids: [] };
+          },
+          newActivity() {
+            this.resetActivityForm();
+            this.adminFormVisible = true;
+          },
+          editActivity(item) {
+            this.adminActivity = {
+              ...item,
+              activity_time: this.toDatetimeLocal(item.activity_time),
+              duration_minutes: item.duration_minutes || 90,
+              volunteer_ids: (item.volunteer_ids || []).map(Number),
+            };
+            this.adminFormVisible = true;
+          },
+          toDatetimeLocal(value) {
+            if (!value) return "";
+            const date = new Date(value);
+            date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+            return date.toISOString().slice(0, 16);
+          },
+          async saveActivity() {
+            try {
+              const item = this.adminActivity;
+              const payload = {
+                ...item,
+                capacity: Number(item.capacity) || 1,
+                duration_minutes: Number(item.duration_minutes) || 90,
+              };
+              const path = item.id ? `/admin/activities/${item.id}/` : "/admin/activities/";
+              const method = item.id ? "PUT" : "POST";
+              await this.api(path, { method, body: JSON.stringify(payload) });
+              this.resetActivityForm();
+              this.adminFormVisible = false;
+              await Promise.all([this.loadAdminData(), this.loadActivities()]);
+              this.notify("活动已保存。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async closeActivity(id) {
+            try {
+              await this.api(`/admin/activities/${id}/`, { method: "DELETE" });
+              await Promise.all([this.loadAdminData(), this.loadActivities()]);
+              this.notify("活动已下架。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          resetGuideForm() {
+            this.adminGuide = { exhibition_id: "", hall_name: "", route_description: "", text_guide: "", map_image_url: "" };
+          },
+          newGuide() {
+            this.resetGuideForm();
+            this.adminFormVisible = true;
+          },
+          editGuide(item) {
+            this.adminGuide = { ...item, exhibition_id: item.exhibition_id || "" };
+            this.adminFormVisible = true;
+          },
+          async saveGuide() {
+            try {
+              const item = this.adminGuide;
+              const payload = { ...item, exhibition_id: item.exhibition_id ? Number(item.exhibition_id) : null };
+              const path = item.id ? `/admin/guides/${item.id}/` : "/admin/guides/";
+              const method = item.id ? "PUT" : "POST";
+              await this.api(path, { method, body: JSON.stringify(payload) });
+              this.resetGuideForm();
+              this.adminFormVisible = false;
+              await Promise.all([this.loadAdminData(), this.loadGuides()]);
+              this.notify("导览信息已保存。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async deleteGuide(id) {
+            try {
+              await this.api(`/admin/guides/${id}/`, { method: "DELETE" });
+              await Promise.all([this.loadAdminData(), this.loadGuides()]);
+              this.notify("导览信息已删除。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async loadAdminApplications() {
+            this.adminApplications = await this.api("/admin/applications/");
+          },
+          async loadAdminVolunteerRoleApplications() {
+            this.adminVolunteerRoleApplications = await this.api("/admin/volunteer-role-applications/");
+          },
+          async approveApplication(id) {
+            try {
+              await this.api(`/admin/applications/${id}/approve/`, { method: "POST" });
+              await this.loadAdminApplications();
+              this.notify("申请已通过。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async approveVolunteerRoleApplication(id) {
+            try {
+              await this.api(`/admin/volunteer-role-applications/${id}/approve/`, { method: "POST" });
+              await Promise.all([this.loadAdminVolunteerRoleApplications(), this.loadAdminData()]);
+              this.notify("志愿者身份申请已通过。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async rejectVolunteerRoleApplication(id) {
+            try {
+              await this.api(`/admin/volunteer-role-applications/${id}/reject/`, { method: "POST" });
+              await this.loadAdminVolunteerRoleApplications();
+              this.notify("志愿者身份申请已拒绝。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async submitVolunteerRoleApplication() {
+            try {
+              const hadExistingApplication = Boolean(this.volunteerRoleApplication);
+              await this.api("/my/volunteer-role-application/", {
+                method: "POST",
+                body: JSON.stringify(this.volunteerRoleForm),
+              });
+              await this.loadVolunteerRoleApplication();
+              this.notify(hadExistingApplication ? "志愿者申请信息已更新，等待管理员审批。" : "志愿者申请已提交，等待管理员审批。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async rejectApplication(id) {
+            try {
+              await this.api(`/admin/applications/${id}/reject/`, { method: "POST" });
+              await this.loadAdminApplications();
+              this.notify("申请已拒绝。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async loadVolunteerData() {
+            await Promise.all([
+              this.loadVolunteerActivities(),
+              this.loadVolunteerAvailableActivities(),
+              this.loadVolunteerApplications(),
+            ]);
+          },
+          async loadVolunteerActivities() {
+            this.volunteerActivities = await this.api("/volunteer/activities/");
+          },
+          async loadVolunteerAvailableActivities() {
+            this.volunteerAvailableActivities = await this.api("/volunteer/available-activities/");
+          },
+          async loadVolunteerApplications() {
+            this.volunteerApplications = await this.api("/volunteer/my-applications/");
+          },
+          async applyForActivity(id) {
+            try {
+              await this.api(`/volunteer/activities/${id}/apply/`, { method: "POST" });
+              await Promise.all([
+                this.loadVolunteerAvailableActivities(),
+                this.loadVolunteerApplications(),
+              ]);
+              this.notify("申请已提交，等待管理员审批。");
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+          async loadVolunteerRegistrations(id) {
+            try {
+              this.volunteerRegistrations = await this.api(`/volunteer/activities/${id}/registrations/`);
+            } catch (error) {
+              this.notify(error.message, "error");
+            }
+          },
+        },
+      }).mount("#app");
+    </script>
+  </body>
+</html>

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>前端配色方案预览</title>
+    <style>
+      :root {
+        --bg: #f4f1eb;
+        --card: rgba(255, 255, 255, 0.82);
+        --line: rgba(23, 26, 31, 0.08);
+        --text: #1d232b;
+        --muted: #61707f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "PingFang SC", "Noto Serif SC", "Microsoft YaHei", serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(159, 111, 55, 0.14), transparent 30%),
+          radial-gradient(circle at bottom right, rgba(21, 64, 92, 0.1), transparent 28%),
+          var(--bg);
+      }
+
+      main {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 48px 0 64px;
+      }
+
+      .eyebrow {
+        font-size: 13px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #8d6745;
+      }
+
+      h1 {
+        margin: 10px 0 14px;
+        font-size: clamp(34px, 5vw, 60px);
+        line-height: 1.04;
+      }
+
+      .intro {
+        max-width: 820px;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.8;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 18px;
+        margin-top: 30px;
+      }
+
+      .card {
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--card);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 18px 40px rgba(26, 35, 43, 0.08);
+      }
+
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 24px;
+      }
+
+      .card p {
+        margin: 0 0 18px;
+        color: var(--muted);
+        line-height: 1.75;
+      }
+
+      .swatches {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      .swatch {
+        aspect-ratio: 1;
+        border-radius: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+      }
+
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+
+      .tag {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(17, 24, 39, 0.06);
+        color: #334155;
+        font-size: 12px;
+      }
+
+      a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 16px;
+        border-radius: 999px;
+        text-decoration: none;
+        color: white;
+        background: #1f2937;
+      }
+
+      .note {
+        margin-top: 26px;
+        padding: 16px 18px;
+        border-left: 4px solid #8d6745;
+        background: rgba(255, 255, 255, 0.72);
+        color: #52606d;
+        line-height: 1.75;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="eyebrow">UI/UX Pro Max · Palette Round</div>
+      <h1>中国工艺美术馆预约平台配色预选</h1>
+      <p class="intro">
+        这 3 组方向都只基于详细设计报告、编码实现报告和后端角色/业务结构生成，没有参考任何现有前端代码。
+        我把它们压成三种完全不同的气质，你先选“平台该看起来像什么”，后面再做布局方案。
+      </p>
+
+      <section class="grid">
+        <article class="card">
+          <h2>A. 漆红金石</h2>
+          <p>最像文化场馆正式官网。适合课程答辩、截图展示和“官方服务平台”语境，庄重、可信、识别度高。</p>
+          <div class="swatches">
+            <div class="swatch" style="background:#7c1f26"></div>
+            <div class="swatch" style="background:#b28a4a"></div>
+            <div class="swatch" style="background:#f7f1e8"></div>
+            <div class="swatch" style="background:#1f1a17"></div>
+          </div>
+          <div class="tags">
+            <span class="tag">官方感</span>
+            <span class="tag">文化机构</span>
+            <span class="tag">适合答辩</span>
+          </div>
+          <a href="./palette-a-lacquer-red.html">查看方案 A</a>
+        </article>
+
+        <article class="card">
+          <h2>B. 玄黑留白</h2>
+          <p>偏展陈与美术馆气质，强调展览图片和排版秩序。更高级，但比 A 更“策展化”，后台感会稍弱。</p>
+          <div class="swatches">
+            <div class="swatch" style="background:#16181d"></div>
+            <div class="swatch" style="background:#f6f4ef"></div>
+            <div class="swatch" style="background:#8d7552"></div>
+            <div class="swatch" style="background:#d8dee7"></div>
+          </div>
+          <div class="tags">
+            <span class="tag">策展感</span>
+            <span class="tag">高级留白</span>
+            <span class="tag">图片主导</span>
+          </div>
+          <a href="./palette-b-gallery-black.html">查看方案 B</a>
+        </article>
+
+        <article class="card">
+          <h2>C. 青玉纸本</h2>
+          <p>更温和，适合“预约 + 导览”型服务平台。交互层次清楚，活动与导览页会比较轻盈，但没 A 那么强势。</p>
+          <div class="swatches">
+            <div class="swatch" style="background:#2f6762"></div>
+            <div class="swatch" style="background:#d6c29a"></div>
+            <div class="swatch" style="background:#f2efe8"></div>
+            <div class="swatch" style="background:#24323b"></div>
+          </div>
+          <div class="tags">
+            <span class="tag">服务感</span>
+            <span class="tag">清晰柔和</span>
+            <span class="tag">移动端友好</span>
+          </div>
+          <a href="./palette-c-jade-paper.html">查看方案 C</a>
+        </article>
+      </section>
+
+      <div class="note">
+        建议默认优先级：如果你更看重“像馆方正式平台”，选 A；如果更看重“像现代展馆官网”，选 B；如果更看重“预约流程清晰、整体更亲和”，选 C。
+      </div>
+    </main>
+  </body>
+</html>
